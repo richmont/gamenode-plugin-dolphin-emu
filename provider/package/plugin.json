@@ -5,7 +5,10 @@
   "provider_id": "dolphin",
   "name": "Dolphin GameCube and Wii",
   "version": "0.1.0",
-  "api": { "min": "1.6.0", "max": "1.6.0" },
+  "api": {
+    "min": "1.6.0",
+    "max": "1.6.0"
+  },
   "permissions": [
     {
       "id": "provider.context.read",
@@ -18,18 +21,39 @@
       "required": false,
       "scope": "own-provider",
       "reason": "Report the GameCube and Wii games configured in Dolphin."
+    },
+    {
+      "id": "data.publish",
+      "required": false,
+      "scope": "own-provider",
+      "reason": "Publish disc identifiers and titles to the reviewed Dolphin catalog dataset."
+    },
+    {
+      "id": "storage.persist",
+      "required": false,
+      "scope": "own-provider",
+      "reason": "Retain this provider's catalog records while Dolphin is stopped."
     }
   ],
   "targets": [
-    { "os": "linux", "arch": "x86_64", "abi": "gnu", "entrypoint": "bin/linux-x64/plugin" }
+    {
+      "os": "linux",
+      "arch": "x86_64",
+      "abi": "gnu",
+      "entrypoint": "bin/linux-x64/plugin"
+    }
   ],
   "publisher": {
-    "key_id": "dolphin-example-publisher",
-    "public_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    "key_id": "dolphin-catalog-development",
+    "public_key": "9MJsveQ7SI656O7ykweL/Y+WN1pye9EJ9W+yaQZmidw="
   },
   "license": {
     "expression": "GPL-3.0-only",
-    "files": ["licenses/LICENSE"],
-    "notices": ["licenses/THIRD-PARTY-NOTICES.txt"]
+    "files": [
+      "licenses/LICENSE"
+    ],
+    "notices": [
+      "licenses/THIRD-PARTY-NOTICES.txt"
+    ]
   }
 }

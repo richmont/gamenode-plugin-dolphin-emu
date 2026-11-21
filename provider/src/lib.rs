@@ -4,6 +4,7 @@
 //! the job of the sibling `gamenode-dolphin-launch` extension, because a custom launch needs the
 //! host's runtime/consent flow and `game.custom_launch` grant.
 
+pub mod catalog;
 pub mod roms;
 
 use std::path::PathBuf;
@@ -20,7 +21,12 @@ pub const PLUGIN_ID: &str = "org.example.gamenode.dolphin";
 pub const PROVIDER_ID: &str = "dolphin";
 pub const PLUGIN_VERSION: &str = env!("CARGO_PKG_VERSION");
 
-pub const CAPABILITIES: &[&str] = &[capability::CONTEXT, capability::DISCOVERY];
+pub const CAPABILITIES: &[&str] = &[
+    capability::CONTEXT,
+    capability::DISCOVERY,
+    capability::DATA_PUBLISH,
+    capability::STORAGE_PERSIST,
+];
 
 /// A provider that scans the folders Dolphin itself is configured to use.
 #[derive(Clone)]
@@ -81,6 +87,12 @@ impl ProviderPlugin for DolphinProvider {
                         .await
                         .map_err(|_| Error::Protocol)?,
                 );
+                if let Some(discovery) = &result.discovery {
+                    if let Err(error) = catalog::publish(&host, &discovery.records).await {
+                        // SDK errors contain safe categories, never server status text or paths.
+                        eprintln!("dolphin catalog publication: {error}");
+                    }
+                }
             }
             _ => return Err(Error::Protocol),
         }

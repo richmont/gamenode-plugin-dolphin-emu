@@ -259,8 +259,11 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "gamenode-plugin-sdk",
+ "prost",
  "tempfile",
  "tokio",
+ "tokio-stream",
+ "tonic",
 ]
 
 [[package]]
