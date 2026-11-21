@@ -60,18 +60,50 @@ The host's launch supervisor owns the process tree, not the plugin:
 A plugin that polls the emulator or spawns it directly would bypass all of this and is out of
 scope.
 
-## Identity
+## Identity (current representation and planned separation)
 
 - plugin id: `org.example.gamenode.dolphin` / `org.example.gamenode.dolphin-launch`
 - provider id: `dolphin`
-- game ids: the six-character disc id (`GZLE01`, `RMCE01`) when readable, otherwise
+- provider-local record ids today: the six-character disc id (`GZLE01`, `RMCE01`) when readable, otherwise
   `dolphin-<stable hash of the absolute path>`
 - `install_dir`: the folder containing the ROM, so collections group together
 - fields: `rom` (file name), `platform` (`gamecube`/`wii`/`unknown`), `game_id` (empty when
   unknown)
 
-The game id is what Dolphin uses for saves and covers, so it is worth preserving for compressed
-containers too (see `TASKS.md`).
+The current `fields.game_id` is a disc ID, not a GameNode catalog ID. Rename this metadata to
+`disc_id` with a compatibility reader for existing entries. Keep the host-selected GameNode
+`game_id` and `installation_id` for resource and launch requests. The current host requires a
+catalog-matched game for content registration and custom launch; unresolved matches must be
+reported rather than substituting the disc ID. Define distinct content identities for copies,
+revisions and disc numbers before changing discovery deduplication.
+
+## Metadata and persistence (planned)
+
+The provider owns title resolution and catalog matching. Prefer local Dolphin title mappings:
+`Load/wiitdb.txt`, or `Load/titles.txt` when the former is empty, then
+`Sys/wiitdb-<language>.txt` with English fallback. If unavailable, use readable ROM metadata and
+finally the file name. Discover the actual Dolphin data locations per installation; do not assume
+the configuration directory is the system-data directory. Keep parsing bounded and offline.
+
+These databases resolve IDs to titles, not complete synopses or GameNode catalog identities.
+Preserve source and language with cached metadata, and keep disc ID and GameTDB ID distinct where
+they differ. Descriptions from ROM metadata are optional; full catalog descriptions are separate
+enrichment. Prefer these text files over coupling the MVP to Dolphin's binary GameListCache.
+
+Use GameNode `StorageGet/Put/Delete` with explicit persistent durability for small versioned
+records. Cache discovered games only, not an entire external catalog. The provider stores metadata
+and auxiliary matching state; authoritative associations go through `MatchingSearch/Assign` and
+the library. Preserve user-selected matches and require resolution of ambiguous candidates.
+
+Storage is private to plugin ID, publisher fingerprint and account profile. The two components
+cannot read each other's keys even in a bundle. The extension reads the selected library entry
+through the host and stores its own durable runtime/content/recipe IDs and revisions. Revalidate
+those references before reuse. Never persist session handles, credentials or user-intent tokens.
+Handle denied persistence, quota exhaustion, cleanup and revision conflicts explicitly.
+
+Sources: Dolphin's [TitleDatabase.cpp](https://github.com/dolphin-emu/dolphin/blob/master/Source/Core/Core/TitleDatabase.cpp)
+and [GameFile.cpp](https://github.com/dolphin-emu/dolphin/blob/master/Source/Core/UICommon/GameFile.cpp),
+inspected on 2026-11-20. Their behavior is a reference for the resolver, not a stable plugin API.
 
 ## Permissions
 
@@ -89,6 +121,12 @@ Extension manifest:
 
 Nothing here grants filesystem sandboxing; the plugin is an ordinary process with the user's OS
 permissions. The API boundary is consent and least authority, not a sandbox.
+
+Planned permission additions must be applied to capabilities and manifests together with their
+implementation: extension `library.discovery` for content registration; provider `library.read`,
+`matching.read` and `matching.write` for catalog association; each component's `storage.read`,
+`storage.write`, `storage.persist` and `storage.delete` where used. These additions are not yet
+declared by the current manifests. Metadata overrides, if implemented, require their own grant.
 
 ## Boundaries
 

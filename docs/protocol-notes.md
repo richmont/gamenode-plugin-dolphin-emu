@@ -48,6 +48,31 @@ target      unset (no detected executable)
 `provider.context.read` is checked first: the provider id in the reply must match `dolphin`.
 Discovery is read-only and must not start a process.
 
+The current `fields.game_id` identifies the disc; it must never populate an RPC's GameNode
+`game_id`. The planned `disc_id` field will retain a compatibility reader for old entries.
+Resolve the catalog ID and installation from the library/host-selected context. Use
+`MatchingSearch` and `MatchingAssign` (`matching.read/write`) to establish catalog associations;
+a private Storage entry is only a cache, not an authoritative match. Preserve user choices and
+report unmatched or ambiguous games before attempting launch.
+
+## Persistent plugin state (planned)
+
+Use SDK `storage_get`, `storage_put`, `storage_delete` over `StorageGet/Put/Delete`.
+Persistent writes require `storage.write` plus `storage.persist` and explicit
+`Durability::Persistent`; reads and deletes require their respective permissions. `Persistence*`
+endpoints administer usage/retention; key/value writes go through Storage.
+
+Store versioned metadata/matching cache records in the provider namespace and durable
+runtime/content/recipe references in the extension namespace. Namespace isolation includes plugin
+ID, publisher fingerprint and active account: a common publisher or bundle does not share keys.
+Read cross-component game state from the library API instead.
+
+Respect the current 1 MiB value limit and 16 MiB quota per namespace/layer. Use bounded records,
+idempotency keys and the last read storage revision; on conflict reread before retrying. Handle
+cleanup, missing records and denied persistent writes without claiming durable success. Store no
+session file handles, credentials or intent tokens. Storage revisions, library entry revisions,
+content binding revisions and recipe revisions are separate values.
+
 ## Runtime registration
 
 `Resources::runtime_register(RuntimeSpec { ... }, expected_revision, idempotency_key)`:
@@ -67,6 +92,13 @@ handle; the executable must be inside an approved installation, prefix or librar
 
 `Resources::register_runtime_content(RuntimeContentBinding { ... }, expected_revision, key)` binds
 one game installation to its ROM handle and runtime. The content handle is likewise host-issued.
+The current host requires `library.discovery` and `files.read` for this call; the extension must
+add discovery to its manifest and capabilities before implementing it. Revision 0 is for a new
+binding; subsequent writes use the binding's own revision and stable content ID.
+
+Resolve an owned, executable-approved runtime, not merely a row named `Dolphin`. Shared runtime
+catalog visibility does not confer execution or mutation authority. A host-provided runtime is
+an option only after its ownership/usage contract is demonstrated by an integration fixture.
 
 ## Custom launch
 
@@ -92,6 +124,11 @@ environment payload, so the host can only run the immutable recipe it approved.
 `user_intent_id` comes from `GAMENODE_PLUGIN_USER_INTENT_ID` (via `Launch::user_intent_id()`). It is
 single-use, expires after 60 seconds and is bound to the extension, profile, game, installation,
 operation and launch target.
+
+Capture the intent before moving `Launch` into session setup. Initialization/check/readiness
+alone must not trigger a launch. Verify first-use proposal, approval and execution against the
+host; do not assume proposal executes the game or that a single-use intent can be consumed twice.
+Later sessions recover durable IDs, reread current state and use the current action's intent.
 
 ## Supervision and playtime
 

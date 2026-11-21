@@ -4,3 +4,4 @@
 *.gnplugin
 fixture-dev.pem
 .DS_Store
+/.codegraph/

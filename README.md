@@ -18,7 +18,8 @@ documentation as an external developer would see them.
   custom-launch recipe/content binding. The host supervises the process tree, so it detects when
   the game ends and attributes playtime; the plugin never starts a process itself.
 - Tests: `cargo test` covers game-id parsing, compressed-container fallback, Dolphin config
-  parsing, bounded scanning, runtime arguments and recipe immutability.
+  parsing, recursive scanning/hidden folders, runtime arguments and recipe immutability. Explicit
+  depth and entry-limit regression tests remain pending.
 
 ## What is still a task
 
@@ -26,6 +27,17 @@ documentation as an external developer would see them.
 ROM handle, propose/request the approved recipe). `TASKS.md` lists it as the first task with the
 exact SDK calls and permissions. The plugin intentionally does nothing unsafe while that is
 pending.
+
+The MVP targets Linux x86_64. Windows releases are planned; macOS and additional architectures
+are possible follow-ups. Each supported OS/architecture/ABI must have a matching binary and a
+`targets` entry in both component manifests. Configuration discovery on a platform does not
+constitute native launch acceptance. Bundle support is independent of platform support.
+
+The agreed integration design uses GameNode's persistent Storage endpoints for bounded metadata
+caches and launch bookkeeping, and its Matching API for authoritative catalog associations.
+Dolphin disc IDs remain separate from GameNode catalog IDs. Title resolution will reuse Dolphin's
+local title databases before falling back to ROM metadata and file names; it is not implemented
+yet. See [Architecture](docs/architecture.md) and [Tasks](TASKS.md).
 
 ## Build
 
@@ -43,9 +55,10 @@ CARGO_TARGET_DIR=/data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin \
 ## Install in GameNode
 
 1. Build `gamenode-dolphin-provider` and `gamenode-dolphin-launch` for your platform.
-2. Copy the provider binary to `provider/package/bin/linux-x64/plugin` (or the Windows
-   `bin/windows-x64/plugin.exe`), the launch binary to the equivalent path in
-   `launch/package/`.
+2. For the current Linux x86_64 target, copy the provider binary to
+   `provider/package/bin/linux-x64/plugin` and the launch binary to the equivalent path in
+   `launch/package/`. Future Windows and other builds also require matching manifest targets;
+   copying a binary alone does not add platform support.
 3. Generate a development key, replace the placeholder publisher key in both manifests and pack
    each tree with `scripts/plugin-package.py` from the GameNode checkout:
    [`docs/plugin-package-manifest.md`](../game-node-desktop/docs/plugin-package-manifest.md#building-and-checking-a-package).
@@ -64,6 +77,8 @@ CARGO_TARGET_DIR=/data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin \
 - [Protocol notes](docs/protocol-notes.md): exact RPCs, permissions and consent flow.
 - [Tasks](TASKS.md): ordered work for the next contributor.
 - [Contributing](CONTRIBUTING.md): conventions and validation.
+- [OpenSpec](openspec/config.yaml): local specification workflow; active change artifacts live
+  under `openspec/changes/`. CodeGraph's local index lives in the ignored `.codegraph/` directory.
 
 ## Layout
 

@@ -1,0 +1,36 @@
+schema: spec-driven
+
+context: |
+  Language: en
+  All artifacts must be written in en.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+  Rust workspace with separate Dolphin discovery provider and launch extension packages.
+  Depend only on the public gamenode-plugin-sdk; the host owns approval and process supervision.
+  Use GameNode persistent Storage for plugin state, with separate component/account namespaces.
+  Disc IDs are not GameNode catalog IDs; authoritative associations use host Matching/library APIs.
+  Linux x86_64 is the MVP; Windows is planned, macOS and other architectures are optional follow-ups.
+  Declare shipped targets with matching binaries; bundles depend on host support.
+  Keep README.md, TASKS.md, docs/architecture.md and docs/protocol-notes.md synchronized.
+  Follow CONTRIBUTING.md validation using the external Cargo target; never build into local target/.
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always state what is out of scope
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing
