@@ -1,0 +1,18 @@
+[workspace]
+members = ["provider", "launch"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "GPL-3.0-only"
+authors = ["GameNode contributors"]
+repository = "https://github.com/richmont/gamenode-plugin-dolphin-emu"
+
+[workspace.dependencies]
+async-trait = "0.1"
+tokio = { version = "1.54.1", features = ["macros", "rt-multi-thread"] }
+# The SDK is not on crates.io yet. This sibling checkout is the reviewed public source; switch to
+# `gamenode-plugin-sdk = "=0.1.0"` after task 11.1 publishes it.
+gamenode-plugin-sdk = { path = "../game-node-desktop/crates/plugin-sdk" }

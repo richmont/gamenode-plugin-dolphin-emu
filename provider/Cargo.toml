@@ -1,0 +1,20 @@
+[package]
+name = "gamenode-dolphin-provider"
+description = "GameNode provider that discovers GameCube and Wii games configured in Dolphin"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+publish = false
+
+[dependencies]
+async-trait.workspace = true
+gamenode-plugin-sdk.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+tempfile = "3"
+
+[lib]
+name = "gamenode_dolphin_provider"

@@ -1,0 +1,17 @@
+[package]
+name = "gamenode-dolphin-launch"
+description = "GameNode extension that starts GameCube and Wii games in Dolphin"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+publish = false
+
+[dependencies]
+async-trait.workspace = true
+gamenode-plugin-sdk.workspace = true
+tokio.workspace = true
+
+[lib]
+name = "gamenode_dolphin_launch"

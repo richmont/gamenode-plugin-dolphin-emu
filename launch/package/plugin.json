@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "id": "org.example.gamenode.dolphin-launch",
+  "kind": "extension",
+  "name": "Dolphin launch",
+  "version": "0.1.0",
+  "api": { "min": "1.6.0", "max": "1.6.0" },
+  "permissions": [
+    {
+      "id": "provider.context.read",
+      "required": true,
+      "scope": "selected game",
+      "reason": "Read the host-issued session and selected target context."
+    },
+    {
+      "id": "game.custom_launch",
+      "required": true,
+      "scope": "selected game",
+      "reason": "Propose and run the reviewed Dolphin launch recipe."
+    },
+    {
+      "id": "library.read",
+      "required": false,
+      "scope": "selected game",
+      "reason": "Read the selected library entry to find its ROM."
+    },
+    {
+      "id": "files.read",
+      "required": false,
+      "scope": "selected game",
+      "reason": "Open the approved ROM and Dolphin executable handles."
+    },
+    {
+      "id": "game.runtime.read",
+      "required": false,
+      "scope": "own-provider",
+      "reason": "Find the approved Dolphin runtime."
+    },
+    {
+      "id": "game.runtime.create",
+      "required": false,
+      "scope": "own-provider",
+      "reason": "Register Dolphin once the user approves its executable."
+    },
+    {
+      "id": "game.runtime.update",
+      "required": false,
+      "scope": "own-provider",
+      "reason": "Update the runtime version after a Dolphin upgrade."
+    },
+    {
+      "id": "game.runtime.delete",
+      "required": false,
+      "scope": "own-provider",
+      "reason": "Remove the runtime when the user uninstalls the extension."
+    }
+  ],
+  "targets": [
+    { "os": "linux", "arch": "x86_64", "abi": "gnu", "entrypoint": "bin/linux-x64/plugin" }
+  ],
+  "publisher": {
+    "key_id": "dolphin-example-publisher",
+    "public_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+  },
+  "license": {
+    "expression": "GPL-3.0-only",
+    "files": ["licenses/LICENSE"],
+    "notices": ["licenses/THIRD-PARTY-NOTICES.txt"]
+  }
+}

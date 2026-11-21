@@ -1,0 +1,12 @@
+Third-party dependency notices
+
+This plugin is GPL-3.0-only; the full text is in `licenses/LICENSE`.
+
+Direct dependencies (upstream metadata, not a legal review):
+- gamenode-plugin-sdk: MIT (GameNode public SDK)
+- async-trait: MIT OR Apache-2.0
+- tokio: MIT
+
+Transitive crates keep their own upstream licenses. Release packaging must generate the complete
+inventory from the locked dependency graph with `cargo metadata` and include the applicable license
+texts before distribution.

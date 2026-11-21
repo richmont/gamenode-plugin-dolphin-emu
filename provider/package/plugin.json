@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "id": "org.example.gamenode.dolphin",
+  "kind": "provider",
+  "provider_id": "dolphin",
+  "name": "Dolphin GameCube and Wii",
+  "version": "0.1.0",
+  "api": { "min": "1.6.0", "max": "1.6.0" },
+  "permissions": [
+    {
+      "id": "provider.context.read",
+      "required": true,
+      "scope": "own-provider",
+      "reason": "Read the host-issued provider context."
+    },
+    {
+      "id": "library.discovery",
+      "required": false,
+      "scope": "own-provider",
+      "reason": "Report the GameCube and Wii games configured in Dolphin."
+    }
+  ],
+  "targets": [
+    { "os": "linux", "arch": "x86_64", "abi": "gnu", "entrypoint": "bin/linux-x64/plugin" }
+  ],
+  "publisher": {
+    "key_id": "dolphin-example-publisher",
+    "public_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+  },
+  "license": {
+    "expression": "GPL-3.0-only",
+    "files": ["licenses/LICENSE"],
+    "notices": ["licenses/THIRD-PARTY-NOTICES.txt"]
+  }
+}
