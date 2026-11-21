@@ -26,3 +26,10 @@ MVP acceptance SHALL record native Linux discovery, catalog association, approve
 #### Scenario: Launch fixture passes without native run
 - **WHEN** SDK fixtures pass but no native Dolphin run has been performed
 - **THEN** the end-to-end acceptance task remains incomplete.
+
+### Requirement: Signed development bundle
+The delivery SHALL include a development-signed bundle `org.example.gamenode.dolphin.bundle` version `0.1.0` with exactly the provider and launch component packages and one common publisher. Private keys and generated archives SHALL remain outside version control.
+
+#### Scenario: Artifact verification
+- **WHEN** the bundle is produced
+- **THEN** both component signatures, the bundle signature, component hashes and publisher equality verify, while native UI acceptance remains separately recorded.

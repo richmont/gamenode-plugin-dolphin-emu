@@ -62,7 +62,9 @@ See the root TASKS.md for post-MVP enrichment and packaging work.
 7. **Release components first.** Two Linux x86_64 packages are sufficient for MVP acceptance.
    Publisher placeholders must be replaced for packaging; keys remain outside version control.
    Windows is planned and macOS/other architectures optional, each with explicit targets and
-   native validation. Bundles depend on the host proposal and do not block component acceptance.
+   native validation. The host now supports bundles. Build a signed development bundle from exactly
+   these components; native import/review/inventory/uninstall acceptance remains with the GameNode
+   integration session.
 
 ## Risks / Trade-offs
 
@@ -88,3 +90,22 @@ See the root TASKS.md for post-MVP enrichment and packaging work.
 4. Package development builds and run native acceptance before release. On rollback, use host
    package rollback, retain library/history and tolerate unsupported cache schema by rebuilding
    disposable metadata. Never automatically execute a recipe solely because cache state survived.
+
+## Durable catalog delivery amendment (2026-11-21)
+
+The requested 3.1 slice publishes minimal discovered metadata directly to the durable shared pool
+using SDK `Resources::data_publish`, dataset/schema `org.gamenode.dolphin.catalog.v1`, schema 1.
+Private cache/matching work formerly under 3.1 remains pending as 3.1a; this delivery does not claim
+it. Disc ID (or the scanner's opaque fallback ID) is the producer-scoped replacement key and the
+payload content identity. Copies/revisions/multidisc records with the same ID collapse for catalog
+publication only. Unknown platform is explicit. Titles still derive from filenames. No catalog
+match is fabricated, and no installation paths, handles or provenance fields are published.
+
+`data.publish` and `storage.persist` are optional, own-provider permissions. Publication errors
+preserve discovery and never downgrade to volatile storage. TTL 0 requests indefinite retention,
+subject to host policy. The SDK owns MutationContext; expected_revision remains 0. Native durable
+consumer, permission projection and bundle acceptance are integration responsibilities. The
+standalone SDK reference host tests client requests and its own disk-backed fixture semantics.
+
+The SDK's added `CustomLaunchRecipe.mod_layers` is initialized empty for compilation only. Launch
+session, intent and arbitrary emulator executable approval blockers remain untouched.

@@ -2,7 +2,7 @@
 
 A standalone GameNode plugin for **GameCube and Wii games managed by Dolphin**. The repository is
 one workspace that builds two packages (discovery provider and launch extension); the intended
-distribution is a single signed bundle, tracked as a GameNode host proposal. It is a separate
+distribution is a single signed `.gnbundle` containing both signed components. It is a separate
 project on purpose: it exercises the public SDK, the package/consent conventions and the plugin
 documentation as an external developer would see them.
 
@@ -14,6 +14,10 @@ documentation as an external developer would see them.
   their six-character game id (`GZLE01`, `RMCE01`); compressed containers fall back to a
   `GZLE01 - Title` file name or a stable path hash. Hidden folders, symlinks, deep trees and huge
   collections are bounded.
+- **Durable catalog**: after discovery, publishes schema-1 records to
+  `org.gamenode.dolphin.catalog.v1` using SDK `data_publish` and `PERSISTENT`. Optional
+  `data.publish` and `storage.persist` grants enable publication; refusal is reported without
+  discarding discovery or downgrading to session-only.
 - **Launch recipe** (`launch/`): builds the Dolphin runtime (`-b -e <rom>`) and the immutable
   custom-launch recipe/content binding. The host supervises the process tree, so it detects when
   the game ends and attributes playtime; the plugin never starts a process itself.
@@ -46,30 +50,56 @@ The public SDK is not on crates.io yet. This workspace points at the reviewed si
 `gamenode-plugin-sdk = "=0.1.0"` (see `Cargo.toml`).
 
 ```sh
-CARGO_TARGET_DIR=/data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin \
+CARGO_TARGET_DIR=/data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin CARGO_NET_OFFLINE=true CARGO_INCREMENTAL=0 \
   cargo test
-CARGO_TARGET_DIR=/data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin \
+CARGO_TARGET_DIR=/data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin CARGO_NET_OFFLINE=true CARGO_INCREMENTAL=0 \
   cargo build --release
 ```
 
-## Install in GameNode
+## Build, sign and bundle (Linux x86_64)
 
-1. Build `gamenode-dolphin-provider` and `gamenode-dolphin-launch` for your platform.
-2. For the current Linux x86_64 target, copy the provider binary to
-   `provider/package/bin/linux-x64/plugin` and the launch binary to the equivalent path in
-   `launch/package/`. Future Windows and other builds also require matching manifest targets;
-   copying a binary alone does not add platform support.
-3. Generate a development key, replace the placeholder publisher key in both manifests and pack
-   each tree with `scripts/plugin-package.py` from the GameNode checkout:
-   [`docs/plugin-package-manifest.md`](../game-node-desktop/docs/plugin-package-manifest.md#building-and-checking-a-package).
-4. Import both packages, pin the publisher, install, review permissions and enable the provider.
-   The provider requests `provider.context.read` (required) and `library.discovery`.
+SDK/host reference: `971a8a8acc1084e7a9c9e1163260ad6110df8b34`. Run from this repository.
+The checked-in public key is **development-only**, not a release publisher identity. The private
+key is outside Git. To regenerate it, run the following keygen command once and replace
+`publisher.public_key` in both manifests with its printed public key, keeping the same key_id.
+Never overwrite a key whose fingerprint is already pinned without a new user review.
 
-   Until GameNode ships bundle support (`openspec/changes/add-plugin-bundles`), two imports and
-   two inventory rows are expected. The bundle will install both components from one signed file,
-   show one review and one inventory row, and uninstall both together; the component packages
-   remain the payload.
-5. The library shows the Dolphin games. Launching them is the `launch/` task.
+```sh
+mkdir -p /tmp/dolphin-keys
+python3 ../game-node-desktop/scripts/plugin-package.py keygen --development --private-key /tmp/dolphin-keys/catalog-dev.pem
+```
+
+Regenerate notices from the locked runtime dependency graph before packaging:
+
+```sh
+env CARGO_TARGET_DIR=/data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin CARGO_NET_OFFLINE=true CARGO_INCREMENTAL=0 cargo metadata --locked --format-version 1 > /tmp/dolphin-metadata.json
+python3 scripts/dependency-notices.py /tmp/dolphin-metadata.json
+```
+
+With the matching key already present, the exact packaging commands are:
+
+```sh
+env CARGO_TARGET_DIR=/data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin CARGO_NET_OFFLINE=true CARGO_INCREMENTAL=0 cargo build --release --workspace
+mkdir -p provider/package/bin/linux-x64 launch/package/bin/linux-x64 dist
+cp /data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin/release/gamenode-dolphin-provider provider/package/bin/linux-x64/plugin
+cp /data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin/release/gamenode-dolphin-launch launch/package/bin/linux-x64/plugin
+python3 ../game-node-desktop/scripts/plugin-package.py pack --source provider/package --private-key /tmp/dolphin-keys/catalog-dev.pem --output dist/dolphin-provider.gnplugin
+python3 ../game-node-desktop/scripts/plugin-package.py pack --source launch/package --private-key /tmp/dolphin-keys/catalog-dev.pem --output dist/dolphin-launch.gnplugin
+python3 ../game-node-desktop/scripts/plugin-package.py verify dist/dolphin-provider.gnplugin
+python3 ../game-node-desktop/scripts/plugin-package.py verify dist/dolphin-launch.gnplugin
+python3 ../game-node-desktop/scripts/plugin-package.py bundle --component dist/dolphin-provider.gnplugin --component dist/dolphin-launch.gnplugin --id org.example.gamenode.dolphin.bundle --name 'Dolphin GameCube and Wii' --version 0.1.0 --private-key /tmp/dolphin-keys/catalog-dev.pem --output dist/dolphin-0.1.0-linux-x64.gnbundle
+python3 ../game-node-desktop/scripts/plugin-package.py bundle-verify dist/dolphin-0.1.0-linux-x64.gnbundle
+sha256sum dist/*.gnplugin dist/*.gnbundle
+```
+
+Import the bundle in GameNode, review the development publisher fingerprint, then grant each
+component's permissions. The intended host flow provides one review, one inventory row and one
+uninstall for both components. Package verification does not establish native UI acceptance.
+The integration session must record those checks and a permitted consumer reading the durable
+catalog after the provider stops. Launch remains a placeholder; known launch-session blockers
+are outside this delivery. Windows cross-build and native acceptance remain separate work.
+
+See [delivery evidence](docs/durable-catalog-evidence.md) for hashes and validation results.
 
 ## Documentation
 

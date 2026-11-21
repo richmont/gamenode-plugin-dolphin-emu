@@ -12,12 +12,15 @@ Dolphin runtime connected to GameNode's supervised launch flow.
   field compatibility and explicit handling of copies, revisions and multiple discs.
 - Resolve titles from Dolphin's local text databases, then ROM metadata/file names; establish
   authoritative associations through GameNode Matching rather than a private cache alone.
+- Publish a minimal persistent shared disc catalog through DataPublish, with optional publication
+  and retention grants; keep private bookkeeping separate.
 - Use GameNode persistent Storage for bounded metadata caches and durable launch references,
   respecting separate provider/extension namespaces and account scope.
 - Implement selected-game runtime/content/recipe setup, consent and repeat launches, with
   host-owned process supervision and no direct emulator spawning.
-- Deliver two signed Linux x86_64 MVP packages. Plan Windows releases, possible macOS/additional
-  architectures and host-dependent bundles separately, declaring only shipped manifest targets.
+- Deliver two signed Linux x86_64 MVP packages and a signed two-component development bundle. Plan
+  Windows releases, possible macOS/additional architectures and native bundle acceptance
+  separately, declaring only shipped manifest targets.
 
 ## Capabilities
 
@@ -39,5 +42,5 @@ executable approval is a host dependency to verify before implementation; extend
 separate work if its current UI/API cannot provide the required approved handle and ownership.
 Caps and permissions must change with implementation, not merely with this planning update.
 
-Full synopses, covers, save backup/restore, binary GameListCache parsing, bundle implementation and
+Full synopses, covers, save backup/restore, binary GameListCache parsing, host bundle implementation and
 non-Linux native certification are outside this MVP change and remain in the root backlog.

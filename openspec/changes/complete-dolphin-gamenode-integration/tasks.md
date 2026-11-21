@@ -18,7 +18,9 @@ the broader roadmap. Keep both synchronized and record evidence before checking 
 
 ## 3. Persistence and catalog association
 
-- [ ] 3.1 Add versioned provider cache records through persistent Storage and matching capabilities/manifests; verify granted/denied storage, restart, schema migration, cleanup, quota and revision-conflict fixtures.
+- [x] 3.1 Publish the minimal durable disc catalog using SDK data_publish, optional data.publish/storage.persist grants and stable producer-scoped resource IDs; verify grant denial, replacement, payload privacy and reference-host restart, and document evidence (`docs/durable-catalog-evidence.md`).
+
+- [ ] 3.1a Add versioned provider cache records through persistent Storage and matching capabilities/manifests; verify granted/denied storage, restart, schema migration, cleanup, quota and revision-conflict fixtures.
 - [ ] 3.2 Implement library-first matching and candidate resolution through the SDK; verify user choices survive, ambiguities stay unresolved and a private cache entry never authorizes launch, then document the matching flow.
 - [ ] 3.3 Implement extension bookkeeping in its own Storage namespace; verify component/account isolation and absence of session handles, intents and credentials in stored records, and document recovery behavior.
 
@@ -31,10 +33,12 @@ the broader roadmap. Keep both synchronized and record evidence before checking 
 
 ## 5. MVP packaging and acceptance
 
-- [ ] 5.1 Build and verify both signed Linux x86_64 development packages with non-placeholder keys kept outside the repo; verify binary/manifest targets and permission parity, and document reproducible packaging commands and dependency notices.
+- [x] 5.1 Build and verify both signed Linux x86_64 development packages with non-placeholder keys kept outside the repo; verify binary/manifest targets and permission parity, and document reproducible packaging commands and dependency notices (`docs/durable-catalog-evidence.md`).
 - [ ] 5.2 Add CI for formatting, Clippy, workspace tests and package verification; verify the pipeline uses an external Cargo target and document SDK/API compatibility policy.
 - [ ] 5.3 Run native GameCube and Wii discovery/matching/launch/repeated-Play acceptance in GameNode; record consent, cancellation, missing ROM, exit detection and playtime evidence with host/plugin revisions.
-- [ ] 5.4 Run formatting, Clippy, workspace tests, git diff --check and strict OpenSpec validation; synchronize README, architecture, protocol and root backlog with actual completed behavior.
+- [x] 5.4 Run formatting, Clippy, workspace tests, git diff --check and strict OpenSpec validation; synchronize README, architecture, protocol and root backlog with actual completed behavior.
+
+- [x] 5.5 Bundle the signed Linux provider and extension under org.example.gamenode.dolphin.bundle 0.1.0; verify signatures, common publisher, exact two components and SHA-256 evidence. Native host acceptance remains in 5.3 and main-repo integration.
 
 ## Workflow follow-up
 

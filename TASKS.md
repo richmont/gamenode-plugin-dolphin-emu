@@ -116,10 +116,8 @@ Acceptance: fixture test for the URL shape, cache hit/miss, denied grant and off
 
 - Prepare two signed Linux x86_64 development packages for the MVP acceptance in task 1; this
   prerequisite does not wait for bundle support or later feature work.
-- Ship both components as one signed bundle once GameNode implements
-  `openspec/changes/add-plugin-bundles`: one `.gnbundle` with the two existing `.gnplugin`
-  payloads, one publisher pin, one review, one inventory row and one uninstall. Until then the
-  README's two-package flow is the only installable path.
+- [ ] Verify the signed bundle in the native GameNode import/review/inventory/uninstall flow;
+  host bundle support is now available. Local artifact verification is recorded separately below.
 - Replace the placeholder publisher keys with the release key; keep development keys out of the
   repository.
 - Generate the real third-party notices from the locked graph (`cargo metadata`) and review them.
@@ -146,3 +144,14 @@ Acceptance: both `.gnplugin` archives import in GameNode, pin the publisher and 
 - Keep `docs/protocol-notes.md` in step with the served API.
 - Add a troubleshooting section (Dolphin path, Flatpak, permissions denied, stale recipe).
 - Link the GameNode release notes for the API minor this plugin targets.
+
+## Durable catalog and bundle delivery (2026-11-21)
+
+- [x] Publish the minimal durable catalog through SDK data_publish; verified granted/denied calls,
+  replacement, private-field exclusion and reference-host restart while preserving discovery.
+- [x] Build/sign/verify Linux components and their two-component bundle; recorded hashes and commands.
+- [ ] Integration handoff: actual host consumer reads while provider is stopped; Linux bundle
+  import/review/inventory/uninstall and retention; Windows cross-build and separate native checks.
+
+The first two items are local delivery evidence; they do not close main-repo 6.3/7.1/7.2.
+See [evidence](docs/durable-catalog-evidence.md). Launch blockers remain out of scope.

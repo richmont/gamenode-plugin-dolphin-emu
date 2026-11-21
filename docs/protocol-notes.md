@@ -148,3 +148,38 @@ game. Use `RuntimeSession`/`GamePresence` only for information the host cannot o
 - `docs/plugin-package-manifest.md`: manifest fields, signing and verification.
 - `openspec/changes/third-party-plugin-custom-launch-runtimes/`: the design and 1.13 fixture for
   runtime recipes and supervised play.
+
+## Durable shared catalog (implemented)
+
+After worker-thread scanning, the provider asynchronously calls public SDK
+`host.resources().ok_or(Error::Protocol)?` and `Resources::data_publish(key, 0, request)`.
+The SDK supplies mutation/session context; the plugin never constructs it manually.
+Dataset and schema are `org.gamenode.dolphin.catalog.v1`, version 1, `PERSISTENT`, TTL 0.
+The four string fields are `disc_id`, `title`, `platform` and `content_id`. Platform is
+`gamecube`, `wii`, or `unknown` when the current scanner cannot identify it. Title currently comes
+from the cleaned filename, not Dolphin's title database. There is no fabricated GameNode catalog
+ID: matching and local title database resolution remain pending.
+
+`resource_id` and `content_id` use the disc ID when known, otherwise the scanner's stable opaque
+file ID. Copies, revisions and multiple discs sharing a six-character ID collapse into one
+catalog row, distinct from installation identity. The first record in the scanner's sorted result
+wins within a scan. Repeated scans replace only this authenticated producer's row and increase
+its host revision; same-identity rows from another publisher remain separate. Unknown-file IDs
+are path-derived hashes, not content checksums; moving such a file changes its identity. A rescan
+is not a deletion or availability proof for older rows. Host retention/uninstall policy owns cleanup.
+
+Only these four metadata fields are published; discovery paths and filenames, handles, argv,
+environment, credentials and session data are excluded. Provenance belongs to the host. Each
+publication has a fresh observation/idempotency ID, observation time and positive sequence;
+expected revision remains 0 under this API's append/replace contract. No automatic retry occurs.
+
+Provider `data.publish` and `storage.persist` use `own-provider` scope and remain optional:
+ROM discovery works without catalog publication. A host denial logs only its status code and SDK
+safe category, returns discovery records, and never retries as SESSION_ONLY. Publication stops
+at the first error in a scan. Persistent records are private by default and consumers still need
+host sharing approval. Their lifetime is independent of the provider session, subject to retention
+and revocation. This shared pool is separate from private Storage bookkeeping planned elsewhere.
+
+SDK reference: GameNode integration `971a8a8`. See README for exact signed-bundle commands and
+[delivery evidence](durable-catalog-evidence.md). Production consumer/revocation/UI acceptance
+belongs to the main-repo integration session, not the independent reference-host fixture.

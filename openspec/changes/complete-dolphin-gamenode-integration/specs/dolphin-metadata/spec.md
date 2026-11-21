@@ -53,3 +53,18 @@ The plugin SHALL use GameNode persistent Storage for bounded versioned cache rec
 #### Scenario: Cache removed
 - **WHEN** the user clears plugin storage
 - **THEN** metadata can be rebuilt without deleting host library matches or history.
+
+### Requirement: Durable shared disc catalog
+The provider SHALL publish schema-1 catalog metadata to `org.gamenode.dolphin.catalog.v1` with PERSISTENT durability, optional data.publish/storage.persist grants and a stable producer-scoped resource ID. Publication SHALL exclude private paths, credentials and execution fields; denial SHALL preserve discovery without a volatile fallback.
+
+#### Scenario: Repeated publication
+- **WHEN** the same producer rescans a known disc
+- **THEN** its durable catalog resource is replaced with a higher host revision, using disc ID or the opaque scanner fallback identity, without replacing another owner's resource.
+
+#### Scenario: Persistence denied
+- **WHEN** the host denies either publication or persistence
+- **THEN** the provider reports the safe error category, publishes no session-only substitute and still returns discovered games.
+
+#### Scenario: Producer stops
+- **WHEN** publication succeeds and the producer session ends
+- **THEN** the durable record remains subject to host retention and authorized consumer reads without the producer reconnecting.
