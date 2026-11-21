@@ -4,7 +4,10 @@
   "kind": "extension",
   "name": "Dolphin launch",
   "version": "0.1.0",
-  "api": { "min": "1.6.0", "max": "1.6.0" },
+  "api": {
+    "min": "1.6.0",
+    "max": "1.6.0"
+  },
   "permissions": [
     {
       "id": "provider.context.read",
@@ -56,15 +59,24 @@
     }
   ],
   "targets": [
-    { "os": "linux", "arch": "x86_64", "abi": "gnu", "entrypoint": "bin/linux-x64/plugin" }
+    {
+      "os": "linux",
+      "arch": "x86_64",
+      "abi": "gnu",
+      "entrypoint": "bin/linux-x64/plugin"
+    }
   ],
   "publisher": {
-    "key_id": "dolphin-example-publisher",
-    "public_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    "key_id": "dolphin-catalog-development",
+    "public_key": "9MJsveQ7SI656O7ykweL/Y+WN1pye9EJ9W+yaQZmidw="
   },
   "license": {
     "expression": "GPL-3.0-only",
-    "files": ["licenses/LICENSE"],
-    "notices": ["licenses/THIRD-PARTY-NOTICES.txt"]
+    "files": [
+      "licenses/LICENSE"
+    ],
+    "notices": [
+      "licenses/THIRD-PARTY-NOTICES.txt"
+    ]
   }
 }
