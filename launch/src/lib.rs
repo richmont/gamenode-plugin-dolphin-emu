@@ -101,6 +101,7 @@ pub fn recipe(
         environment_set: Default::default(),
         environment_unset: Vec::new(),
         runtime_handle: runtime_id.into(),
+        mod_layers: Vec::new(),
     }
 }
 
