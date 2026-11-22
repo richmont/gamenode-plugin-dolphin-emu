@@ -19,19 +19,34 @@ documentation as an external developer would see them.
   `dev.richmont.gamenode.dolphin-emu.catalog.v1` using SDK `data_publish` and `PERSISTENT`. Optional
   `data.publish` and `storage.persist` grants enable publication; refusal is reported without
   discarding discovery or downgrading to session-only.
-- **Launch recipe** (`launch/`): builds the Dolphin runtime (`-b -e <rom>`) and the immutable
-  custom-launch recipe/content binding. The host supervises the process tree, so it detects when
-  the game ends and attributes playtime; the plugin never starts a process itself.
-- Tests: `cargo test` covers game-id parsing, compressed-container fallback, homebrew executable
-  identity, Dolphin config parsing, recursive scanning/hidden folders, runtime arguments and
-  recipe immutability. Explicit depth and entry-limit regression tests remain pending.
+- **Launch** (`launch/`): a Play action starts a target-scoped extension session. It reads the
+  selected library entry, asks GameNode for the installation folder, selects the ROM, reuses or
+  asks the host picker for an approved Dolphin executable, binds the ROM content, and proposes and
+  requests the immutable recipe (`-b -e <rom>`). Later Play reuses the durable runtime, content and
+  recipe IDs. The host supervises Dolphin, detects when the process tree exits and attributes
+  playtime; the plugin never starts a process itself and never sees an executable path or handle.
+- Tests: `cargo test --workspace` covers game-id parsing, compressed-container fallback, homebrew
+  executable identity, Dolphin config parsing, recursive scanning/hidden folders, runtime
+  arguments and recipe immutability, plus a gRPC reference host for the launch session. The
+  reference host asserts the exact wire sequence, opaque handles, no argv/executable/environment
+  override, repeated-Play reuse, reapproval on changed runtime/content, error paths without a job
+  and readiness-only handlers. Explicit depth and entry-limit regression tests remain pending.
 
 ## What is still a task
 
-`launch/` does not yet perform the session flow (find or register the Dolphin runtime, bind the
-ROM handle, propose/request the approved recipe). `TASKS.md` lists it as the first task with the
-exact SDK calls and permissions. The plugin intentionally does nothing unsafe while that is
-pending.
+- Native Linux x86_64 acceptance with real Dolphin and GameCube/Wii games (runtime picker consent,
+  repeated Play, exit detection, playtime) remains open; the in-repo reference host proves the
+  client contract, not GameNode's production launch path.
+- The host's `LibraryEntry` does not expose the provider's `rom`, `platform` or `title` fields. The
+  extension selects the ROM from the approved installation listing by title and refuses ambiguity.
+- The content approval has no digest; size and modification time catch common in-place changes,
+  but a replacement preserving both is not detectable through the current host API.
+- The provider's title database, catalog matching and Storage cache tasks remain in `TASKS.md`.
+- The checked-in signed packages were produced before this launch session and no longer match the
+  updated manifest/source; rebuild, re-sign and re-verify them before native acceptance. Do not
+  use the recorded hashes for the new build. See
+  [launch-session evidence](docs/launch-session-evidence.md) for the exact fixture coverage,
+  command results and host API limits.
 
 The MVP targets Linux x86_64. Windows releases are planned; macOS and additional architectures
 are possible follow-ups. Each supported OS/architecture/ABI must have a matching binary and a
@@ -51,15 +66,16 @@ The public SDK is not on crates.io yet. This workspace points at the reviewed si
 `gamenode-plugin-sdk = "=0.1.0"` (see `Cargo.toml`).
 
 ```sh
-CARGO_TARGET_DIR=/data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin CARGO_NET_OFFLINE=true CARGO_INCREMENTAL=0 \
+CARGO_TARGET_DIR=/data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-launch CARGO_NET_OFFLINE=true CARGO_INCREMENTAL=0 \
   cargo test
-CARGO_TARGET_DIR=/data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin CARGO_NET_OFFLINE=true CARGO_INCREMENTAL=0 \
+CARGO_TARGET_DIR=/data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-launch CARGO_NET_OFFLINE=true CARGO_INCREMENTAL=0 \
   cargo build --release
 ```
 
 ## Build, sign and bundle (Linux x86_64)
 
-SDK/host reference: `971a8a8acc1084e7a9c9e1163260ad6110df8b34`. Run from this repository.
+SDK/host reference: `cc667cbf162544b5446a2848c2a9decf91148dd3` (host-approved runtime picker).
+Run from this repository.
 The checked-in public key is **development-only**, not a release publisher identity. The private
 key is outside Git. To regenerate it, run the following keygen command once and replace
 `publisher.public_key` in both manifests with its printed public key, keeping the same key_id.
@@ -73,17 +89,17 @@ python3 ../game-node-desktop/scripts/plugin-package.py keygen --development --pr
 Regenerate notices from the locked runtime dependency graph before packaging:
 
 ```sh
-env CARGO_TARGET_DIR=/data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin CARGO_NET_OFFLINE=true CARGO_INCREMENTAL=0 cargo metadata --locked --format-version 1 > /tmp/dolphin-metadata.json
+env CARGO_TARGET_DIR=/data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-launch CARGO_NET_OFFLINE=true CARGO_INCREMENTAL=0 cargo metadata --locked --format-version 1 > /tmp/dolphin-metadata.json
 python3 scripts/dependency-notices.py /tmp/dolphin-metadata.json
 ```
 
 With the matching key already present, the exact packaging commands are:
 
 ```sh
-env CARGO_TARGET_DIR=/data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin CARGO_NET_OFFLINE=true CARGO_INCREMENTAL=0 cargo build --release --workspace
+env CARGO_TARGET_DIR=/data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-launch CARGO_NET_OFFLINE=true CARGO_INCREMENTAL=0 cargo build --release --workspace
 mkdir -p provider/package/bin/linux-x64 launch/package/bin/linux-x64 dist
-cp /data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin/release/gamenode-dolphin-emu-provider provider/package/bin/linux-x64/plugin
-cp /data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin/release/gamenode-dolphin-emu-launch launch/package/bin/linux-x64/plugin
+cp /data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-launch/release/gamenode-dolphin-emu-provider provider/package/bin/linux-x64/plugin
+cp /data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-launch/release/gamenode-dolphin-emu-launch launch/package/bin/linux-x64/plugin
 python3 ../game-node-desktop/scripts/plugin-package.py pack --source provider/package --private-key /tmp/dolphin-keys/catalog-dev.pem --output dist/dolphin-emu-provider.gnplugin
 python3 ../game-node-desktop/scripts/plugin-package.py pack --source launch/package --private-key /tmp/dolphin-keys/catalog-dev.pem --output dist/dolphin-emu-launch.gnplugin
 python3 ../game-node-desktop/scripts/plugin-package.py verify dist/dolphin-emu-provider.gnplugin

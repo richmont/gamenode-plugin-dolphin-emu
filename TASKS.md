@@ -31,51 +31,55 @@ counts as a host catalog match.
 
 ## 1. Finish the launch session (MVP critical path, after prerequisites)
 
-Implement `launch/src/lib.rs` `ExtensionPlugin::handle` for the target-game session:
+Implemented in `launch/src/lib.rs` and `launch/src/main.rs`; reference-host evidence is recorded
+in [docs/launch-session-evidence.md](docs/launch-session-evidence.md). The reference host proves
+the client contract only. Native Linux acceptance and the Windows handoff remain open.
 
-1. Resolve the selected `TargetGameContext` (`host.context().target_game`).
-2. Read the library entry with `host.resources()?.library_get(installation_id)` and take `rom`
-   and `platform` from its fields. Use the host-selected/catalog game ID for RPCs, never the disc
-   ID from `fields.game_id`. Reject an unresolved catalog association with actionable guidance.
-3. Ask for the ROM handle with `FilesRequestAccess` (`game_id`, `installation_id`,
-   `resource_kinds = ["installation"]`, no declared locations). The reply is a directory/file
-   handle bound to this session; list the installation folder and pick the file named by `rom`.
-4. Resolve the owned approved runtime by durable identity; a display name or shared catalog row
-   alone is insufficient. If absent, register from an approved executable handle (see below).
-5. Add `library.discovery` to extension capabilities and manifest alongside `files.read` for
-   content registration. Reuse a stable content ID and its binding revision; use revision 0 only
-   for creation. Keep the library revision separate from binding and recipe revisions.
-6. Propose the recipe once (`propose_custom_launch`) and request the approved revision on later
-   plays (`request_custom_launch`). Use `Launch::user_intent_id()` unchanged; never invent or
-   reuse an intent.
-7. Map refusals to actionable text: no intent, denied grant, stale revision, missing runtime,
-   missing content, incompatible package.
-8. Persist durable runtime/content/recipe IDs and revisions through host Storage, then revalidate
-   on later sessions. Never persist session handles or intents. Verify first-use proposal/review/
-   execution semantics and ensure Initialize/Check/readiness cannot cause duplicate launches.
+- [x] Resolve `host.context().target_game`, read `LibraryGet`, and reject an unresolved catalog
+  association with actionable guidance. The entry exposes no `rom`/`platform`/`title` fields; the
+  ROM is selected from the approved installation listing by title, with a unique-file fallback and
+  ambiguity refusal.
+- [x] Request the installation folder with `FilesRequestAccess` (`game_id`, `installation_id`,
+  `["read"]`, `["installation"]`, no declared locations), list it and pass only the selected file
+  handle to content registration. No path is exposed to the plugin.
+- [x] Reuse `RuntimesGet`/`RuntimesList` when the durable id, revision and shape are current;
+  otherwise call `RuntimesRequestAccess` with no executable handle and `dolphin-emu` /
+  `dolphin-emu.desktop` hints. The host picker owns the executable; the reply has no path/handle.
+- [x] Register/reuse a stable content binding with `GamesRegisterContent`; library entry, content
+  binding and recipe revisions stay separate and revision 0 is used only for creation.
+- [x] Propose the recipe once and request the approved revision on later plays; pass
+  `Launch::user_intent_id()` unchanged. Refusals map to actionable text for no intent, denied
+  grants, stale revisions, missing runtime/content and changed executable/content.
+- [x] Persist only durable runtime/content/recipe IDs and revisions (plus ROM name/size/mtime) in
+  private `Storage`; revalidate on later sessions. No handles, paths, argv, environment or intents
+  are stored.
+- [x] Manifest: added `game.launch`, `library.discovery`, `library.read.all`, storage and
+  notification grants with review/impact text; removed unused runtime update/delete declarations.
+- [x] Reference-host fixture: exact call sequence, opaque handles, no argv/executable/environment
+  override, repeated-Play reuse, reapproval on changed runtime/content, no job on error paths and
+  readiness-only handlers.
 
-Acceptance:
+Acceptance still open:
 
-- fixture test over the SDK reference host asserting the exact call sequence, the opaque handles
-  and that no argv/executable/environment override is sent;
-- manual Linux x86_64 runs in GameNode for GameCube and Wii: approve the runtime, start with the
-  extension, select/reuse the recipe for later Play, close Dolphin and verify session/playtime;
-- restart/repeated-Play fixtures reuse valid references; changed ROM/runtime, expired intent,
-  stale revisions and revoked grants refuse or require fresh approval without fallback;
-- no process is started by the plugin in any error path.
+- native Linux x86_64 runs in GameNode for GameCube and Wii: approve the runtime, start with the
+  extension, select/reuse the recipe for later Play, close Dolphin and verify session/playtime
+  (5.3);
+- signed-package import/review and the Windows native handoff; the existing artifacts predate this
+  change and must be rebuilt/re-signed without reusing the recorded hashes.
 
-Open question: how does the user approve the Dolphin executable on each platform? Today
-`FilesRequestAccess` approves installation/save/prefix folders for a game, not arbitrary
-executables. Decide and document one of:
+Resolved open question: Dolphin is approved through the host-side runtime picker
+(`RuntimesRequestAccess`, desktop change `add-approved-runtime-picker`). There is no
+prefix-folder workaround and no plugin process spawn.
 
-- a host-side runtime approval UI (preferred; runtime registration already needs a host-approved
-  handle);
-- a declared `prefix` folder containing Dolphin, approved by the user, with the executable handle
-  taken from it;
-- a Core-provided runtime the extension only *uses*, conditional on a verified ownership and
-  execution-authority contract (shared catalog visibility alone is not enough).
+Known host API gaps (documented, not worked around):
 
-Do not work around this by spawning Dolphin from the plugin.
+- `LibraryEntry` does not expose the provider's `rom`, `platform` or `title`;
+- the content approval has no digest, so a same-size/same-mtime replacement is not detectable;
+- the SDK `files_request_access` / `runtime_request_access` helpers use a 15-second deadline while
+  the host picker waits up to five minutes; the extension builds those two requests with a
+  five-minute deadline;
+- GameNode does not dispatch a command to an extension action session, so the session runs from
+  `main`; `Initialize`/`Check` remain readiness-only.
 
 ## 2. Provider robustness
 

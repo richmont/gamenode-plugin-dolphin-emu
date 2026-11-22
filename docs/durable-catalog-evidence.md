@@ -105,6 +105,13 @@ switched off. The provider binary also carries the homebrew `.dol`/`.elf` discov
 hashes moved again; publisher key, plugin ids, provider id, bundle id/version and dataset
 namespace are unchanged.
 
+**Stale after 2026-11-22:** the launch session implementation changes
+`launch/package/plugin.json` (adds `game.launch`, `library.read.all`, `library.discovery`,
+storage and notification grants) and the launch binary. The package/bundle hashes below no longer
+match the current source or manifest. Rebuild, re-sign and re-verify them before native acceptance;
+see [launch-session-evidence.md](launch-session-evidence.md). The release tag and `dist/` artifacts
+were not updated by that change.
+
 Pre-release identity note (2026-11-21): the package, bundle, provider and dataset identifiers were
 renamed from `org.example.gamenode.dolphin*` / `org.gamenode.dolphin.catalog.v1` to
 `dev.richmont.gamenode.dolphin-emu*` / `dev.richmont.gamenode.dolphin-emu.catalog.v1`, and the

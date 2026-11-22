@@ -2,9 +2,10 @@
 
 ## Why
 
-The provider discovers ROMs, but the launch extension currently returns success without requesting
-execution. A usable Linux MVP needs reliable catalog identity, persistent state and an approved
-Dolphin runtime connected to GameNode's supervised launch flow.
+The provider discovers ROMs and the launch extension now implements the selected-game session
+(approved runtime, ROM content binding, recipe and execution request) against the desktop
+runtime-picker contract. The remaining work in this change is catalog identity/matching, local
+title resolution, bounded persistent caches and native acceptance.
 
 ## What Changes
 
@@ -37,10 +38,11 @@ None. This repository has no pre-existing OpenSpec specifications.
 ## Impact
 
 Changes will affect `provider/src/`, `launch/src/`, their manifests and tests, and project docs.
-Only the public SDK is allowed; it currently comes from the sibling GameNode checkout. Runtime
-executable approval is a host dependency to verify before implementation; extending that host is
-separate work if its current UI/API cannot provide the required approved handle and ownership.
-Caps and permissions must change with implementation, not merely with this planning update.
+Only the public SDK is allowed; it currently comes from the sibling GameNode checkout. The host
+runtime picker (`add-approved-runtime-picker`) resolves the executable-approval dependency. The
+extension still needs the selected library entry's provider fields (`rom`/`platform`/`title`),
+which `LibraryEntry` does not expose; it selects the ROM from the approved installation listing
+and refuses ambiguity. Native Linux acceptance and the Windows handoff remain open.
 
 Full synopses, covers, save backup/restore, binary GameListCache parsing, host bundle implementation and
 non-Linux native certification are outside this MVP change and remain in the root backlog.

@@ -8,7 +8,7 @@ is not cosmetic, it matches two different host capabilities:
 | Package | Kind | Job | Grant |
 | --- | --- | --- | --- |
 | `gamenode-dolphin-emu-provider` | provider | Scan Dolphin's game folders and report GameCube/Wii games | `library.discovery` |
-| `gamenode-dolphin-emu-launch` | extension | Register Dolphin as a runtime and run an approved launch recipe | `game.custom_launch` + runtime/file grants |
+| `gamenode-dolphin-emu-launch` | extension | Ask the host to approve Dolphin, bind the ROM and run an approved launch recipe | `game.launch` + `game.custom_launch` + runtime/file/library/storage grants |
 
 A provider cannot launch a shared emulator through `DeclareActions`: that path is URI-only and has
 no exit detection. A detected executable target (API 1.6) must live inside the game's own install
@@ -38,17 +38,44 @@ because Dolphin homebrew exists for both; the launch path is unchanged.
 
 ```text
 extension session (target game)
-  ├─ resolve GameNode entry + ROM file handle (approved files)
-  ├─ find/register the Dolphin runtime (approved executable handle)
-  ├─ bind ROM content → runtime (content binding)
-  ├─ propose recipe  ──► host review + user consent (once)
-  └─ request recipe  ──► host launches runtime, supervises process tree
+  ├─ read the selected library entry (game/installation identity, title)
+  ├─ request the approved installation folder and select the ROM file
+  ├─ reuse or ask the host picker for an approved Dolphin runtime
+  ├─ bind ROM content → runtime (stable content binding)
+  ├─ reuse an approved recipe or propose one ──► host review + user consent
+  └─ request the approved recipe ──► host launches runtime, supervises process tree
                           └─ exit detected by the host, session/playtime recorded
 ```
 
 The recipe carries only opaque host handles: no executable path, no argv, no environment. The
 runtime's argument template is `-b -e {content}`. The host substitutes the approved ROM path as a
 single argv element, so the plugin cannot smuggle shell text or another file.
+
+GameNode starts an extension package as a one-shot process for the user's **Play** action. The
+host issues the target and intent; the plugin performs the resource calls and then keeps the
+session open until the host's launch job has passed its approval fence. A readiness startup has no
+intent and exits without launching. The plugin never starts Dolphin itself.
+
+The host's `RuntimesRequestAccess` picker owns the executable: the request carries the runtime
+spec and text hints (`dolphin-emu`, `dolphin-emu.desktop`) but no handle, and the reply carries no
+path or handle. A changed executable invalidates the approval and the host asks again.
+
+`LaunchState` in private Storage contains only `runtime_id`, `content_id`, `recipe_id` and their
+revisions, plus the selected ROM's name, size and modification time. It never contains a file
+handle, executable handle, path, argv, environment or user intent. A repeated Play rereads the
+entry, revalidates the runtime and file listing, reuses valid references and calls
+`GamesRequestCustomLaunch` with the current intent. A changed ROM (name, size or modification
+time), runtime or content invalidates the old recipe and requires a fresh review.
+
+Host API limits observed by this implementation:
+
+- `LibraryEntry` has no `rom`, `platform` or `title` field. The entry name is the provider's cleaned
+  file name, so the ROM is selected from the approved installation listing by normalized title,
+  or accepted only when the folder has exactly one Dolphin ROM. Ambiguity is refused.
+- The runtime/content platform field is the host OS, not the console. The runtime accepts the
+  generic content kind `rom`; Dolphin loads both GameCube and Wii images.
+- The content approval has no digest. Size and modification time detect common in-place changes;
+  a replacement that preserves both is not distinguishable without a host content-identity API.
 
 `-b` (batch) makes Dolphin exit when the game ends. Without it the session ends when the emulator
 window closes, not when the game stops.
@@ -119,19 +146,23 @@ Provider manifest:
 
 Extension manifest:
 
+- `game.launch` (required): let GameNode start a one-shot extension session for Play.
 - `game.custom_launch` (required): propose/request the recipe.
-- `game.runtime.read/create/update/delete` (optional): register and maintain Dolphin.
-- `files.read` (optional): obtain the approved ROM and executable handles.
-- `library.read` (optional): resolve the selected game entry.
+- `game.runtime.read/create` (optional): find or ask the host picker for Dolphin.
+- `files.read` (optional): obtain the approved installation folder and ROM handle.
+- `library.read` + `library.read.all` (optional): resolve the selected game entry. GameNode exposes
+  another provider's selected entry to an extension only under the whole-library read grant; the
+  extension reads only the target installation.
+- `library.discovery` (optional): register the ROM content binding.
+- `storage.read/write/persist` (optional): remember durable runtime/content/recipe identities.
+- `notifications.publish` (optional): explain a refused or failed launch.
 
 Nothing here grants filesystem sandboxing; the plugin is an ordinary process with the user's OS
 permissions. The API boundary is consent and least authority, not a sandbox.
 
-Planned permission additions must be applied to capabilities and manifests together with their
-implementation: extension `library.discovery` for content registration; provider `library.read`,
-`matching.read` and `matching.write` for catalog association; each component's `storage.read`,
-`storage.write`, `storage.persist` and `storage.delete` where used. These additions are not yet
-declared by the current manifests. Metadata overrides, if implemented, require their own grant.
+Provider-side catalog association (`library.read`, `matching.read`, `matching.write`) and
+provider Storage caches are still planned; they are not declared by the current provider manifest.
+Metadata overrides, if implemented, require their own grant.
 
 ## Boundaries
 
@@ -173,6 +204,8 @@ at the first error in a scan. Persistent records are private by default and cons
 host sharing approval. Their lifetime is independent of the provider session, subject to retention
 and revocation. This shared pool is separate from private Storage bookkeeping planned elsewhere.
 
-SDK reference: GameNode integration `971a8a8`. See README for exact signed-bundle commands and
+SDK reference: GameNode integration `971a8a8` for the durable catalog; the launch session in
+[launch-session-evidence.md](launch-session-evidence.md) uses `cc667cb` (approved runtime picker).
+See README for exact signed-bundle commands and
 [delivery evidence](durable-catalog-evidence.md). Production consumer/revocation/UI acceptance
 belongs to the main-repo integration session, not the independent reference-host fixture.

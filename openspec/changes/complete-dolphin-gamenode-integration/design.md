@@ -3,9 +3,16 @@
 ## Context
 
 See proposal.md for motivation. The workspace contains a provider with synchronous scanning
-offloaded through `spawn_blocking` and a launch extension with tested pure recipe builders but no
-session implementation. The 10 existing unit tests passed during the initial analysis; no native
-end-to-end Dolphin acceptance is established. Only the public sibling SDK is a dependency.
+offloaded through `spawn_blocking` and a launch extension whose session flow is implemented and
+covered by a gRPC reference host (see `docs/launch-session-evidence.md`). The 10 existing unit tests
+passed during the initial analysis; no native end-to-end Dolphin acceptance is established. Only
+the public sibling SDK is a dependency.
+
+**Implementation update (2026-11-22):** the desktop host now provides the approved runtime picker
+(`add-approved-runtime-picker`), and the extension implements the launch session against it. The
+reference host proves the client contract; native picker/consent/supervisor/playtime acceptance
+remains task 5.3, and the Windows handoff remains open. `LibraryEntry` still does not expose the
+provider `rom`/`platform`/`title` fields, so ROM selection uses the approved installation listing.
 
 ## Goals / Non-Goals
 
@@ -44,12 +51,11 @@ See the root TASKS.md for post-MVP enrichment and packaging work.
    Denied persistence must be explicit; loss of a cache cannot authorize a new launch. Read shared
    game state through the library, since package IDs have isolated namespaces even in a bundle.
 
-5. **Host-approved runtime setup is a prerequisite.** Prefer the host approval UI, as already
-   specified in the backlog. Demonstrate an approved executable file handle and an owned runtime
-   usable for content registration before session implementation. If the public host flow cannot
-   provide this, record the precise missing host contract as separate GameNode work; do not assume
-   a shared catalog row grants execution. A prefix-based alternative requires documented consent
-   and equivalent fixtures before adoption.
+5. **Host-approved runtime setup is a prerequisite.** The host approval UI now exists
+   (`add-approved-runtime-picker`): the extension asks with a spec and text hints, the host picker
+   validates one exact executable and the reply carries no path or handle. The reference-host
+   fixture demonstrates an owned runtime usable for content registration and launch. A shared
+   catalog row never grants execution. The prefix-based alternative was not adopted.
 
 6. **Reconcile launch state per selected action.** Capture the current intent before session setup;
    resolve the library entry, approved ROM handle and runtime; create or update content using its
@@ -68,8 +74,9 @@ See the root TASKS.md for post-MVP enrichment and packaging work.
 
 ## Risks / Trade-offs
 
-- [Host runtime approval path unverified] → Gate launch implementation on a concrete approved
-  handle/ownership fixture; track missing host work separately.
+- [Native picker/consent path unverified] → The reference-host fixture proves the plugin contract;
+  the real picker, review dialog, supervisor and playtime path still require native acceptance 5.3.
+  Track missing host work separately.
 - [Identity migration changes discovery keys] → Test copies, multiple discs and existing history
   with the real host reconciliation contract before changing keys.
 - [Dolphin data paths vary] → Missing local databases fall back offline; test native, portable and
