@@ -109,3 +109,14 @@ CARGO_INCREMENTAL=0
 - Native Linux x86_64 GameCube/Wii acceptance (5.3) and Windows handoff (1.7 in the desktop plan)
   remain open. The reference host proves the client contract, not GameNode's production launch,
   consent dialog, picker UI, supervisor or playtime path.
+
+## Local 0.3.0 test bundle (2026-11-22)
+
+- Built from this worktree as version 0.3.0, signed with a new development key because the 0.2.0
+  key lived only in `/tmp` and was cleaned. This is a local test artifact, not a release.
+- Publisher key id `richmont-dolphin-emu-development`; fingerprint
+  `SHA256:88d96d09e9215555c7d99cd8abfdb51822860d63aaa5013b403dae789c0caf9a`.
+- Bundle: `/home/rich/gamenode/gamenode-plugin-dolphin-emu/dist/dolphin-emu-0.3.0-linux-x64.gnbundle`;
+  SHA-256 `97e3ef048c2a581a89178541bd9fc1f37719fb2927a777c4fcad084f4740f9c9`.
+- The 0.2.0 publisher key cannot verify this bundle, so importing it requires a fresh trust review
+  (or uninstalling 0.2.0 with Keep data first). No tag, push or GitHub release was made.

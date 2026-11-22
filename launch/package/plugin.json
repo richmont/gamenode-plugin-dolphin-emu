@@ -3,7 +3,7 @@
   "id": "dev.richmont.gamenode.dolphin-emu-launch",
   "kind": "extension",
   "name": "Dolphin launch",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "api": {
     "min": "1.6.0",
     "max": "1.6.0"
@@ -112,7 +112,7 @@
   ],
   "publisher": {
     "key_id": "richmont-dolphin-emu-development",
-    "public_key": "9MJsveQ7SI656O7ykweL/Y+WN1pye9EJ9W+yaQZmidw="
+    "public_key": "ZxCVv9hD2lgmZWngI63mkpun0uXl8FenLTbb03Icaf0="
   },
   "license": {
     "expression": "GPL-3.0-only",
