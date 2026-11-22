@@ -10,6 +10,12 @@ use gamenode_plugin_sdk::{
 
 pub const DATASET: &str = "dev.richmont.gamenode.dolphin-emu.catalog.v1";
 
+fn text(value: String) -> Value {
+    Value {
+        kind: Some(Kind::StringValue(value)),
+    }
+}
+
 /// Catalog identity deliberately collapses copies/revisions sharing a disc ID. It is not an
 /// installation identity or a GameNode catalog ID. Unknown discs retain the scanner's opaque ID.
 pub fn publication(record: &DiscoveryRecord) -> DataPublishRequest {
@@ -24,22 +30,17 @@ pub fn publication(record: &DiscoveryRecord) -> DataPublishRequest {
         Some("wii") => "wii",
         _ => "unknown",
     };
-    let fields = [
-        ("disc_id", disc_id),
+    let mut fields = std::collections::BTreeMap::new();
+    if !disc_id.is_empty() {
+        fields.insert("disc_id".to_owned(), text(disc_id.clone()));
+    }
+    for (key, value) in [
         ("title", record.name.clone()),
-        ("platform", platform.into()),
+        ("platform", platform.to_owned()),
         ("content_id", resource_id.clone()),
-    ]
-    .into_iter()
-    .map(|(key, value)| {
-        (
-            key.into(),
-            Value {
-                kind: Some(Kind::StringValue(value)),
-            },
-        )
-    })
-    .collect();
+    ] {
+        fields.insert(key.to_owned(), text(value));
+    }
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default();
@@ -84,4 +85,53 @@ pub async fn publish(host: &HostClient, records: &[DiscoveryRecord]) -> Result<(
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+
+    fn record(id: &str, game_id: &str, platform: &str) -> DiscoveryRecord {
+        DiscoveryRecord {
+            id: id.to_owned(),
+            name: "Homebrew".to_owned(),
+            install_dir: "/games".to_owned(),
+            fields: HashMap::from([
+                ("rom".to_owned(), format!("{id}.dol")),
+                ("game_id".to_owned(), game_id.to_owned()),
+                ("platform".to_owned(), platform.to_owned()),
+            ]),
+            target: None,
+        }
+    }
+
+    fn field<'a>(request: &'a DataPublishRequest, key: &str) -> Option<&'a str> {
+        match request.value.as_ref()?.fields.get(key)?.kind.as_ref()? {
+            Kind::StringValue(value) => Some(value),
+            _ => None,
+        }
+    }
+
+    #[test]
+    fn headerless_records_omit_the_disc_id() {
+        let request = publication(&record("dolphin-emu-0123456789abcdef", "", "unknown"));
+        assert_eq!(request.resource_id, "dolphin-emu-0123456789abcdef");
+        assert_eq!(
+            field(&request, "content_id"),
+            Some("dolphin-emu-0123456789abcdef")
+        );
+        assert_eq!(field(&request, "platform"), Some("unknown"));
+        assert!(field(&request, "disc_id").is_none());
+        assert_eq!(request.dataset_id, DATASET);
+        assert_eq!(request.schema_version, 1);
+    }
+
+    #[test]
+    fn discs_keep_their_disc_id() {
+        let request = publication(&record("GZLE01", "GZLE01", "gamecube"));
+        assert_eq!(request.resource_id, "GZLE01");
+        assert_eq!(field(&request, "disc_id"), Some("GZLE01"));
+        assert_eq!(field(&request, "platform"), Some("gamecube"));
+    }
 }

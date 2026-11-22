@@ -8,8 +8,15 @@ use std::path::{Path, PathBuf};
 use gamenode_plugin_sdk::proto::DiscoveryRecord;
 
 /// Extensions Dolphin can load. `iso`/`gcm` carry a plain disc header; the compressed
-/// containers keep it elsewhere, so their game id falls back to the file name.
-pub const ROM_EXTENSIONS: &[&str] = &["iso", "gcm", "rvz", "wbfs", "wia", "ciso", "gcz"];
+/// containers keep it elsewhere, so their game id falls back to the file name. `dol`/`elf`
+/// are bare homebrew executables with neither a disc header nor a disc id.
+pub const ROM_EXTENSIONS: &[&str] = &[
+    "iso", "gcm", "rvz", "wbfs", "wia", "ciso", "gcz", "dol", "elf",
+];
+
+/// Homebrew executables. They are discovered and launched like discs but never borrow a disc
+/// identity, because their headers carry section offsets or ELF metadata instead of a disc id.
+pub const EXECUTABLE_EXTENSIONS: &[&str] = &["dol", "elf"];
 
 /// Where Dolphin stores its configuration on each platform, plus the Flatpak location.
 pub fn config_candidates() -> Vec<PathBuf> {
@@ -72,14 +79,23 @@ pub fn roots() -> Vec<PathBuf> {
     roots
 }
 
-pub fn is_rom(path: &Path) -> bool {
+fn has_extension(path: &Path, extensions: &[&str]) -> bool {
     path.extension()
         .and_then(|extension| extension.to_str())
         .is_some_and(|extension| {
-            ROM_EXTENSIONS
+            extensions
                 .iter()
                 .any(|candidate| candidate.eq_ignore_ascii_case(extension))
         })
+}
+
+pub fn is_rom(path: &Path) -> bool {
+    has_extension(path, ROM_EXTENSIONS)
+}
+
+/// True for a homebrew executable, which has no disc header to read.
+pub fn is_executable(path: &Path) -> bool {
+    has_extension(path, EXECUTABLE_EXTENSIONS)
 }
 
 /// A plain GameCube/Wii disc starts with a six-character id such as `GZLE01` or `RMCE01`.
@@ -121,10 +137,16 @@ pub fn id_from_filename(stem: &str) -> Option<String> {
 }
 
 pub fn clean_title(file_name: &str) -> String {
+    clean_title_with_id(file_name, true)
+}
+
+/// Executables keep a leading six-character token: `GZLE01 demo.dol` is not a disc, so stripping
+/// the prefix would imply an identity the file does not have.
+fn clean_title_with_id(file_name: &str, strip_disc_id: bool) -> String {
     let stem = file_name
         .rsplit_once('.')
         .map_or(file_name, |(stem, _)| stem);
-    let stem = match id_from_filename(stem) {
+    let stem = match strip_disc_id.then(|| id_from_filename(stem)).flatten() {
         Some(id) => stem[id.len()..].trim_start_matches([' ', '-', '_', '.']),
         None => stem,
     };
@@ -154,18 +176,23 @@ fn path_id(path: &Path) -> String {
 /// games by collection; the file name and console travel as template fields.
 pub fn record_for(path: &Path) -> Option<DiscoveryRecord> {
     let file_name = path.file_name()?.to_str()?;
-    let name = clean_title(file_name);
+    let executable = is_executable(path);
+    let name = clean_title_with_id(file_name, !executable);
     if name.is_empty() {
         return None;
     }
     let install_dir = path.parent()?.to_string_lossy().replace('\\', "/");
-    let from_header = read_game_id(path);
-    let from_name = id_from_filename(
-        file_name
-            .rsplit_once('.')
-            .map_or(file_name, |(stem, _)| stem),
-    );
-    let game_id = from_header.clone().or(from_name);
+    let game_id = if executable {
+        None
+    } else {
+        let from_header = read_game_id(path);
+        let from_name = id_from_filename(
+            file_name
+                .rsplit_once('.')
+                .map_or(file_name, |(stem, _)| stem),
+        );
+        from_header.or(from_name)
+    };
     let id = game_id.clone().unwrap_or_else(|| path_id(path));
     let platform = platform_of(game_id.as_deref());
     Some(DiscoveryRecord {
@@ -299,13 +326,56 @@ mod tests {
     #[test]
     fn only_dolphin_extensions_count_case_insensitively() {
         for name in [
-            "a.iso", "b.GCM", "c.rvz", "d.wbfs", "e.wia", "f.ciso", "g.gcz",
+            "a.iso", "b.GCM", "c.rvz", "d.wbfs", "e.wia", "f.ciso", "g.gcz", "h.dol", "i.ELF",
         ] {
             assert!(is_rom(Path::new(name)), "{name}");
         }
-        for name in ["a.txt", "b.iso.part", "c"] {
+        for name in ["a.txt", "b.iso.part", "c", "d.dol.txt"] {
             assert!(!is_rom(Path::new(name)), "{name}");
         }
+    }
+
+    #[test]
+    fn homebrew_executables_are_discovered_without_a_disc_id() {
+        let directory = tempfile::tempdir().unwrap();
+        let dol = write_rom(directory.path(), "240pSuite.dol", &[0, 0, 1, 0, 0, 0, 0, 0]);
+        let record = record_for(&dol).unwrap();
+        assert_eq!(record.name, "240pSuite");
+        assert_eq!(record.fields["rom"], "240pSuite.dol");
+        assert_eq!(record.fields["game_id"], "");
+        assert_eq!(record.fields["platform"], "unknown");
+        assert!(record.id.starts_with("dolphin-emu-"));
+
+        let elf = write_rom(directory.path(), "homebrew.ELF", b"\x7fELF\x01\x02\x01\x00");
+        let record = record_for(&elf).unwrap();
+        assert_eq!(record.name, "homebrew");
+        assert_eq!(record.fields["game_id"], "");
+        assert_eq!(record.fields["platform"], "unknown");
+        assert!(record.id.starts_with("dolphin-emu-"));
+    }
+
+    #[test]
+    fn executables_never_borrow_a_disc_id_or_strip_the_name() {
+        let directory = tempfile::tempdir().unwrap();
+        let named = write_rom(directory.path(), "GZLE01 demo.dol", &[0; 8]);
+        let record = record_for(&named).unwrap();
+        assert_eq!(record.fields["game_id"], "");
+        assert_eq!(record.name, "GZLE01 demo");
+        assert!(record.id.starts_with("dolphin-emu-"));
+
+        let header = write_rom(directory.path(), "plain.dol", b"GZLE01\x00\x00");
+        let record = record_for(&header).unwrap();
+        assert_eq!(record.fields["game_id"], "");
+        assert!(record.id.starts_with("dolphin-emu-"));
+    }
+
+    #[test]
+    fn moving_a_homebrew_file_changes_its_identity() {
+        let directory = tempfile::tempdir().unwrap();
+        let first = record_for(&write_rom(directory.path(), "homebrew.dol", &[0; 8])).unwrap();
+        let second = record_for(&write_rom(directory.path(), "renamed.dol", &[0; 8])).unwrap();
+        assert_ne!(first.id, second.id);
+        assert_eq!(first.fields["game_id"], second.fields["game_id"]);
     }
 
     #[test]
