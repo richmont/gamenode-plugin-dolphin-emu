@@ -18,6 +18,13 @@
       "impact_if_disabled": "The extension cannot read the selected game context."
     },
     {
+      "id": "game.launch",
+      "required": true,
+      "scope": "selected game",
+      "reason": "Start the game when the user chooses this extension from Play.",
+      "impact_if_disabled": "GameNode cannot start a game through this extension."
+    },
+    {
       "id": "game.custom_launch",
       "required": true,
       "scope": "selected game",
@@ -28,15 +35,29 @@
       "id": "library.read",
       "required": false,
       "scope": "selected game",
-      "reason": "Read the selected library entry to find its ROM.",
-      "impact_if_disabled": "The extension cannot read the selected library entry to find its ROM."
+      "reason": "Read the selected library entry before building the launch.",
+      "impact_if_disabled": "The extension cannot read the selected library entry."
+    },
+    {
+      "id": "library.read.all",
+      "required": false,
+      "scope": "whole library, read-only; the extension reads only the selected entry",
+      "reason": "GameNode exposes another provider's selected entry to an extension only under the whole-library read grant.",
+      "impact_if_disabled": "The extension cannot resolve the selected game's library entry and cannot launch it."
+    },
+    {
+      "id": "library.discovery",
+      "required": false,
+      "scope": "selected game",
+      "reason": "Register the selected ROM file as the launch content for this installation.",
+      "impact_if_disabled": "The extension cannot register the ROM content and cannot launch it."
     },
     {
       "id": "files.read",
       "required": false,
       "scope": "selected game",
-      "reason": "Open the approved ROM and Dolphin executable handles.",
-      "impact_if_disabled": "The extension cannot open the approved ROM or Dolphin executable."
+      "reason": "Open the approved installation folder and select the ROM file.",
+      "impact_if_disabled": "The extension cannot open the approved ROM folder."
     },
     {
       "id": "game.runtime.read",
@@ -49,22 +70,36 @@
       "id": "game.runtime.create",
       "required": false,
       "scope": "own-provider",
-      "reason": "Register Dolphin once the user approves its executable.",
-      "impact_if_disabled": "The first Dolphin registration cannot be created."
+      "reason": "Register Dolphin once the user approves its executable in the host picker.",
+      "impact_if_disabled": "The extension cannot ask GameNode to approve a Dolphin executable."
     },
     {
-      "id": "game.runtime.update",
+      "id": "storage.read",
       "required": false,
       "scope": "own-provider",
-      "reason": "Update the runtime version after a Dolphin upgrade.",
-      "impact_if_disabled": "A Dolphin upgrade must be re-registered manually."
+      "reason": "Read the saved runtime, content and recipe identities before a later Play.",
+      "impact_if_disabled": "Every Play must ask for the Dolphin runtime and launch plan again."
     },
     {
-      "id": "game.runtime.delete",
+      "id": "storage.write",
       "required": false,
       "scope": "own-provider",
-      "reason": "Remove the runtime when the user uninstalls the extension.",
-      "impact_if_disabled": "Uninstalling the extension cannot remove its runtime registration."
+      "reason": "Save only durable runtime, content and recipe IDs and revisions.",
+      "impact_if_disabled": "The extension cannot remember approvals for later Play."
+    },
+    {
+      "id": "storage.persist",
+      "required": false,
+      "scope": "own-provider",
+      "reason": "Keep the saved launch approvals after the extension process exits.",
+      "impact_if_disabled": "Saved launch approvals are lost when the extension stops."
+    },
+    {
+      "id": "notifications.publish",
+      "required": false,
+      "scope": "own-provider",
+      "reason": "Show a short explanation when a launch is refused or cannot be prepared.",
+      "impact_if_disabled": "A failed launch is not explained in GameNode."
     }
   ],
   "targets": [

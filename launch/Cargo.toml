@@ -11,7 +11,13 @@ publish = false
 [dependencies]
 async-trait.workspace = true
 gamenode-plugin-sdk.workspace = true
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 tokio.workspace = true
+tonic = { version = "0.14", features = ["transport"] }
+
+[dev-dependencies]
+tokio-stream = { version = "0.1", features = ["net"] }
 
 [lib]
 name = "gamenode_dolphin_emu_launch"
