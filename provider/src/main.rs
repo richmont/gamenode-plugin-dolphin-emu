@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use gamenode_dolphin_provider::{
+use gamenode_dolphin_emu_provider::{
     CAPABILITIES, DolphinProvider, PLUGIN_ID, PLUGIN_VERSION, PROVIDER_ID,
 };
 use gamenode_plugin_sdk::{Launch, Session, SessionOptions, proto::SessionKind};
@@ -9,7 +9,7 @@ use gamenode_plugin_sdk::{Launch, Session, SessionOptions, proto::SessionKind};
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let provider = DolphinProvider::from_environment();
     eprintln!(
-        "dolphin provider scanning {} configured root(s)",
+        "dolphin-emu provider scanning {} configured root(s)",
         provider.roots().len()
     );
     let session = Session::open_with_options(

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "id": "org.example.gamenode.dolphin-launch",
+  "id": "dev.richmont.gamenode.dolphin-emu-launch",
   "kind": "extension",
   "name": "Dolphin launch",
   "version": "0.1.0",
@@ -67,7 +67,7 @@
     }
   ],
   "publisher": {
-    "key_id": "dolphin-catalog-development",
+    "key_id": "richmont-dolphin-emu-development",
     "public_key": "9MJsveQ7SI656O7ykweL/Y+WN1pye9EJ9W+yaQZmidw="
   },
   "license": {

@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "id": "org.example.gamenode.dolphin",
+  "id": "dev.richmont.gamenode.dolphin-emu",
   "kind": "provider",
-  "provider_id": "dolphin",
+  "provider_id": "dolphin-emu",
   "name": "Dolphin GameCube and Wii",
   "version": "0.1.0",
   "api": {
@@ -44,7 +44,7 @@
     }
   ],
   "publisher": {
-    "key_id": "dolphin-catalog-development",
+    "key_id": "richmont-dolphin-emu-development",
     "public_key": "9MJsveQ7SI656O7ykweL/Y+WN1pye9EJ9W+yaQZmidw="
   },
   "license": {

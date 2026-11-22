@@ -1,5 +1,5 @@
 [package]
-name = "gamenode-dolphin-launch"
+name = "gamenode-dolphin-emu-launch"
 description = "GameNode extension that starts GameCube and Wii games in Dolphin"
 version.workspace = true
 edition.workspace = true
@@ -14,4 +14,4 @@ gamenode-plugin-sdk.workspace = true
 tokio.workspace = true
 
 [lib]
-name = "gamenode_dolphin_launch"
+name = "gamenode_dolphin_emu_launch"

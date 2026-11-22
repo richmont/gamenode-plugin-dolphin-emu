@@ -11,7 +11,7 @@ import/review/inventory/uninstall checks.
 
 | Item | Value |
 | --- | --- |
-| Dataset and schema | `org.gamenode.dolphin.catalog.v1` (schema version 1) |
+| Dataset and schema | `dev.richmont.gamenode.dolphin-emu.catalog.v1` (schema version 1) |
 | Durability | `PERSISTENT`, TTL 0 (host default) |
 | Payload fields | `disc_id`, `title`, `platform`, `content_id` |
 | Platform values | `gamecube`, `wii`, `unknown` |
@@ -86,7 +86,7 @@ binaries, packages, bundles and keys are gitignored and not committed. Both mani
 same development publisher:
 
 ```text
-key_id:     dolphin-catalog-development
+key_id:     richmont-dolphin-emu-development
 public_key: 9MJsveQ7SI656O7ykweL/Y+WN1pye9EJ9W+yaQZmidw=
 ```
 
@@ -94,24 +94,31 @@ Artifacts (outside Git, in `dist/`):
 
 | Artifact | SHA-256 |
 | --- | --- |
-| `dist/dolphin-provider.gnplugin` | `8633eec438e81bf39360cdb1bc5993282f37e2306e94bf07d8771db8e3c6c5a6` |
-| `dist/dolphin-launch.gnplugin` | `80737f51ab9dd95cb5e0bb7504552db65e71a814dca3cae464f2e6368e337a97` |
-| `dist/dolphin-0.1.0-linux-x64.gnbundle` | `fec9bb462002fe2b694b7dedae430bb6d1ebe07cc44324f5905e4a568f097970` |
+| `dist/dolphin-emu-provider.gnplugin` | `e7243b6816081b56c6edccc6e1ae5854053bdb462884f2b25e5d2aba7b6afd14` |
+| `dist/dolphin-emu-launch.gnplugin` | `56670c46779084ae0026863e4e4268572daa429edc73a1a48f46aa3cc6911f8e` |
+| `dist/dolphin-emu-0.1.0-linux-x64.gnbundle` | `2718d7fd4a42359e63b03f46622758570cdf2acb6e57096acaaf1ca85b0070b3` |
 
-Bundle: `org.example.gamenode.dolphin.bundle`, name `Dolphin GameCube and Wii`, version `0.1.0`.
-`bundle.json` lists exactly two components, `org.example.gamenode.dolphin` (provider) and
-`org.example.gamenode.dolphin-launch` (extension), with the component hashes above.
+Pre-release identity note (2026-11-21): the package, bundle, provider and dataset identifiers were
+renamed from `org.example.gamenode.dolphin*` / `org.gamenode.dolphin.catalog.v1` to
+`dev.richmont.gamenode.dolphin-emu*` / `dev.richmont.gamenode.dolphin-emu.catalog.v1`, and the
+provider id is now `dolphin-emu`. The artifacts above were rebuilt and re-signed under the same
+development public key; their hashes changed with the manifests. No released data, grants or
+installed packages used the old identity.
+
+Bundle: `dev.richmont.gamenode.dolphin-emu.bundle`, name `Dolphin GameCube and Wii`, version `0.1.0`.
+`bundle.json` lists exactly two components, `dev.richmont.gamenode.dolphin-emu` (provider) and
+`dev.richmont.gamenode.dolphin-emu-launch` (extension), with the component hashes above.
 
 ```text
-plugin-package.py pack --source provider/package --private-key <key> --output dist/dolphin-provider.gnplugin
-plugin-package.py pack --source launch/package  --private-key <key> --output dist/dolphin-launch.gnplugin
-plugin-package.py verify dist/dolphin-provider.gnplugin        # valid package
-plugin-package.py verify dist/dolphin-launch.gnplugin          # valid package
-plugin-package.py bundle --component dist/dolphin-provider.gnplugin \
-  --component dist/dolphin-launch.gnplugin --id org.example.gamenode.dolphin.bundle \
+plugin-package.py pack --source provider/package --private-key <key> --output dist/dolphin-emu-provider.gnplugin
+plugin-package.py pack --source launch/package  --private-key <key> --output dist/dolphin-emu-launch.gnplugin
+plugin-package.py verify dist/dolphin-emu-provider.gnplugin        # valid package
+plugin-package.py verify dist/dolphin-emu-launch.gnplugin          # valid package
+plugin-package.py bundle --component dist/dolphin-emu-provider.gnplugin \
+  --component dist/dolphin-emu-launch.gnplugin --id dev.richmont.gamenode.dolphin-emu.bundle \
   --name 'Dolphin GameCube and Wii' --version 0.1.0 --private-key <key> \
-  --output dist/dolphin-0.1.0-linux-x64.gnbundle               # verified bundle
-plugin-package.py bundle-verify dist/dolphin-0.1.0-linux-x64.gnbundle  # valid bundle
+  --output dist/dolphin-emu-0.1.0-linux-x64.gnbundle               # verified bundle
+plugin-package.py bundle-verify dist/dolphin-emu-0.1.0-linux-x64.gnbundle  # valid bundle
 ```
 
 Exact reproducible commands are in `README.md`; the hashes change whenever a binary, manifest or

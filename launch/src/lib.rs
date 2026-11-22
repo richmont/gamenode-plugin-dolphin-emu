@@ -23,7 +23,7 @@ use gamenode_plugin_sdk::{
     resources::{CustomLaunchRecipe, RuntimeArgumentTemplate, RuntimeContentBinding, RuntimeSpec},
 };
 
-pub const PLUGIN_ID: &str = "org.example.gamenode.dolphin-launch";
+pub const PLUGIN_ID: &str = "dev.richmont.gamenode.dolphin-emu-launch";
 pub const PLUGIN_VERSION: &str = env!("CARGO_PKG_VERSION");
 /// Suffix-free content kinds this runtime accepts. They mirror the provider's `platform` field.
 pub const SUPPORTED_FORMATS: &[&str] = &["gamecube-rom", "wii-rom"];
@@ -127,7 +127,7 @@ impl ExtensionPlugin for DolphinLaunch {
                 // the session successful while the consent wiring in TASKS.md is pending; never
                 // fall back to starting a process from the plugin.
                 eprintln!(
-                    "dolphin launch: target game {} installation {} is ready for the runtime recipe",
+                    "dolphin-emu launch: target game {} installation {} is ready for the runtime recipe",
                     target.game_id, target.installation_id
                 );
             }

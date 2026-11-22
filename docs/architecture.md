@@ -7,8 +7,8 @@ is not cosmetic, it matches two different host capabilities:
 
 | Package | Kind | Job | Grant |
 | --- | --- | --- | --- |
-| `gamenode-dolphin-provider` | provider | Scan Dolphin's game folders and report GameCube/Wii games | `library.discovery` |
-| `gamenode-dolphin-launch` | extension | Register Dolphin as a runtime and run an approved launch recipe | `game.custom_launch` + runtime/file grants |
+| `gamenode-dolphin-emu-provider` | provider | Scan Dolphin's game folders and report GameCube/Wii games | `library.discovery` |
+| `gamenode-dolphin-emu-launch` | extension | Register Dolphin as a runtime and run an approved launch recipe | `game.custom_launch` + runtime/file grants |
 
 A provider cannot launch a shared emulator through `DeclareActions`: that path is URI-only and has
 no exit detection. A detected executable target (API 1.6) must live inside the game's own install
@@ -26,7 +26,7 @@ DOLPHIN_PLUGIN_ROOTS       ─┴─► scan (bounded) ─► DiscoveryRecord pe
                                                    fields: rom, platform, game_id
 ```
 
-The provider never launches anything. It reports `provider_id = "dolphin"`, one record per ROM,
+The provider never launches anything. It reports `provider_id = "dolphin-emu"`, one record per ROM,
 and no `DetectedTarget`.
 
 ## Launch
@@ -62,10 +62,10 @@ scope.
 
 ## Identity (current representation and planned separation)
 
-- plugin id: `org.example.gamenode.dolphin` / `org.example.gamenode.dolphin-launch`
-- provider id: `dolphin`
+- plugin id: `dev.richmont.gamenode.dolphin-emu` / `dev.richmont.gamenode.dolphin-emu-launch`
+- provider id: `dolphin-emu`
 - provider-local record ids today: the six-character disc id (`GZLE01`, `RMCE01`) when readable, otherwise
-  `dolphin-<stable hash of the absolute path>`
+  `dolphin-emu-<stable hash of the absolute path>`
 - `install_dir`: the folder containing the ROM, so collections group together
 - fields: `rom` (file name), `platform` (`gamecube`/`wii`/`unknown`), `game_id` (empty when
   unknown)
@@ -140,7 +140,7 @@ declared by the current manifests. Metadata overrides, if implemented, require t
 After worker-thread scanning, the provider asynchronously calls public SDK
 `host.resources().ok_or(Error::Protocol)?` and `Resources::data_publish(key, 0, request)`.
 The SDK supplies mutation/session context; the plugin never constructs it manually.
-Dataset and schema are `org.gamenode.dolphin.catalog.v1`, version 1, `PERSISTENT`, TTL 0.
+Dataset and schema are `dev.richmont.gamenode.dolphin-emu.catalog.v1`, version 1, `PERSISTENT`, TTL 0.
 The four string fields are `disc_id`, `title`, `platform` and `content_id`. Platform is
 `gamecube`, `wii`, or `unknown` when the current scanner cannot identify it. Title currently comes
 from the cleaned filename, not Dolphin's title database. There is no fabricated GameNode catalog

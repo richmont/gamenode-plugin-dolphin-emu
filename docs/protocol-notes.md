@@ -154,7 +154,7 @@ game. Use `RuntimeSession`/`GamePresence` only for information the host cannot o
 After worker-thread scanning, the provider asynchronously calls public SDK
 `host.resources().ok_or(Error::Protocol)?` and `Resources::data_publish(key, 0, request)`.
 The SDK supplies mutation/session context; the plugin never constructs it manually.
-Dataset and schema are `org.gamenode.dolphin.catalog.v1`, version 1, `PERSISTENT`, TTL 0.
+Dataset and schema are `dev.richmont.gamenode.dolphin-emu.catalog.v1`, version 1, `PERSISTENT`, TTL 0.
 The four string fields are `disc_id`, `title`, `platform` and `content_id`. Platform is
 `gamecube`, `wii`, or `unknown` when the current scanner cannot identify it. Title currently comes
 from the cleaned filename, not Dolphin's title database. There is no fabricated GameNode catalog

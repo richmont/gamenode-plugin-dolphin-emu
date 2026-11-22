@@ -28,7 +28,7 @@ MVP acceptance SHALL record native Linux discovery, catalog association, approve
 - **THEN** the end-to-end acceptance task remains incomplete.
 
 ### Requirement: Signed development bundle
-The delivery SHALL include a development-signed bundle `org.example.gamenode.dolphin.bundle` version `0.1.0` with exactly the provider and launch component packages and one common publisher. Private keys and generated archives SHALL remain outside version control.
+The delivery SHALL include a development-signed bundle `dev.richmont.gamenode.dolphin-emu.bundle` version `0.1.0` with exactly the provider and launch component packages and one common publisher. Private keys and generated archives SHALL remain outside version control.
 
 #### Scenario: Artifact verification
 - **WHEN** the bundle is produced

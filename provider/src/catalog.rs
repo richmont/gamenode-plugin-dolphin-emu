@@ -8,7 +8,7 @@ use gamenode_plugin_sdk::{
     proto::{DataPublishRequest, DiscoveryRecord, MutationOutcome, StorageDurability},
 };
 
-pub const DATASET: &str = "org.gamenode.dolphin.catalog.v1";
+pub const DATASET: &str = "dev.richmont.gamenode.dolphin-emu.catalog.v1";
 
 /// Catalog identity deliberately collapses copies/revisions sharing a disc ID. It is not an
 /// installation identity or a GameNode catalog ID. Unknown discs retain the scanner's opaque ID.
@@ -71,7 +71,7 @@ pub async fn publish(host: &HostClient, records: &[DiscoveryRecord]) -> Result<(
             .data_publish(&idempotency_key(), 0, request)
             .await
             .map_err(|status| {
-                eprintln!("dolphin DataPublish: {:?}", status.code());
+                eprintln!("dolphin-emu DataPublish: {:?}", status.code());
                 Error::from(status)
             })?;
         if reply.durability != StorageDurability::Persistent as i32

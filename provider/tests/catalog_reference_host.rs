@@ -1,6 +1,8 @@
 //! Independent gRPC reference host using only public SDK messages and service traits.
 //! Disk persistence here tests the client contract, not GameNode's production storage engine.
-use gamenode_dolphin_provider::{CAPABILITIES, DolphinProvider, PLUGIN_ID, PROVIDER_ID, catalog};
+use gamenode_dolphin_emu_provider::{
+    CAPABILITIES, DolphinProvider, PLUGIN_ID, PROVIDER_ID, catalog,
+};
 use gamenode_plugin_sdk::{Error, Launch, ProviderPlugin, Session, SessionOptions, proto::*};
 use prost::Message;
 use std::{
@@ -313,7 +315,7 @@ fn unknown_discs_use_the_opaque_scanner_identity_and_keep_unknown_platform() {
         .remove(0);
     let request = catalog::publication(&record);
     assert_eq!(request.resource_id, record.id);
-    assert!(request.resource_id.starts_with("dolphin-"));
+    assert!(request.resource_id.starts_with("dolphin-emu-"));
     assert_eq!(
         request.value.unwrap().fields["platform"].kind,
         Some(gamenode_plugin_sdk::prost_types::value::Kind::StringValue(

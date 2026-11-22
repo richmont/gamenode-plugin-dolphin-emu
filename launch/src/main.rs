@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use gamenode_dolphin_launch::{CAPABILITIES, DolphinLaunch, PLUGIN_ID, PLUGIN_VERSION};
+use gamenode_dolphin_emu_launch::{CAPABILITIES, DolphinLaunch, PLUGIN_ID, PLUGIN_VERSION};
 use gamenode_plugin_sdk::{Launch, Session};
 
 #[tokio::main]

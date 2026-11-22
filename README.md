@@ -15,7 +15,7 @@ documentation as an external developer would see them.
   `GZLE01 - Title` file name or a stable path hash. Hidden folders, symlinks, deep trees and huge
   collections are bounded.
 - **Durable catalog**: after discovery, publishes schema-1 records to
-  `org.gamenode.dolphin.catalog.v1` using SDK `data_publish` and `PERSISTENT`. Optional
+  `dev.richmont.gamenode.dolphin-emu.catalog.v1` using SDK `data_publish` and `PERSISTENT`. Optional
   `data.publish` and `storage.persist` grants enable publication; refusal is reported without
   discarding discovery or downgrading to session-only.
 - **Launch recipe** (`launch/`): builds the Dolphin runtime (`-b -e <rom>`) and the immutable
@@ -81,14 +81,14 @@ With the matching key already present, the exact packaging commands are:
 ```sh
 env CARGO_TARGET_DIR=/data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin CARGO_NET_OFFLINE=true CARGO_INCREMENTAL=0 cargo build --release --workspace
 mkdir -p provider/package/bin/linux-x64 launch/package/bin/linux-x64 dist
-cp /data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin/release/gamenode-dolphin-provider provider/package/bin/linux-x64/plugin
-cp /data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin/release/gamenode-dolphin-launch launch/package/bin/linux-x64/plugin
-python3 ../game-node-desktop/scripts/plugin-package.py pack --source provider/package --private-key /tmp/dolphin-keys/catalog-dev.pem --output dist/dolphin-provider.gnplugin
-python3 ../game-node-desktop/scripts/plugin-package.py pack --source launch/package --private-key /tmp/dolphin-keys/catalog-dev.pem --output dist/dolphin-launch.gnplugin
-python3 ../game-node-desktop/scripts/plugin-package.py verify dist/dolphin-provider.gnplugin
-python3 ../game-node-desktop/scripts/plugin-package.py verify dist/dolphin-launch.gnplugin
-python3 ../game-node-desktop/scripts/plugin-package.py bundle --component dist/dolphin-provider.gnplugin --component dist/dolphin-launch.gnplugin --id org.example.gamenode.dolphin.bundle --name 'Dolphin GameCube and Wii' --version 0.1.0 --private-key /tmp/dolphin-keys/catalog-dev.pem --output dist/dolphin-0.1.0-linux-x64.gnbundle
-python3 ../game-node-desktop/scripts/plugin-package.py bundle-verify dist/dolphin-0.1.0-linux-x64.gnbundle
+cp /data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin/release/gamenode-dolphin-emu-provider provider/package/bin/linux-x64/plugin
+cp /data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-plugin/release/gamenode-dolphin-emu-launch launch/package/bin/linux-x64/plugin
+python3 ../game-node-desktop/scripts/plugin-package.py pack --source provider/package --private-key /tmp/dolphin-keys/catalog-dev.pem --output dist/dolphin-emu-provider.gnplugin
+python3 ../game-node-desktop/scripts/plugin-package.py pack --source launch/package --private-key /tmp/dolphin-keys/catalog-dev.pem --output dist/dolphin-emu-launch.gnplugin
+python3 ../game-node-desktop/scripts/plugin-package.py verify dist/dolphin-emu-provider.gnplugin
+python3 ../game-node-desktop/scripts/plugin-package.py verify dist/dolphin-emu-launch.gnplugin
+python3 ../game-node-desktop/scripts/plugin-package.py bundle --component dist/dolphin-emu-provider.gnplugin --component dist/dolphin-emu-launch.gnplugin --id dev.richmont.gamenode.dolphin-emu.bundle --name 'Dolphin GameCube and Wii' --version 0.1.0 --private-key /tmp/dolphin-keys/catalog-dev.pem --output dist/dolphin-emu-0.1.0-linux-x64.gnbundle
+python3 ../game-node-desktop/scripts/plugin-package.py bundle-verify dist/dolphin-emu-0.1.0-linux-x64.gnbundle
 sha256sum dist/*.gnplugin dist/*.gnbundle
 ```
 

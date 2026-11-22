@@ -245,7 +245,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "gamenode-dolphin-launch"
+name = "gamenode-dolphin-emu-launch"
 version = "0.1.0"
 dependencies = [
  "async-trait",
@@ -254,7 +254,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "gamenode-dolphin-provider"
+name = "gamenode-dolphin-emu-provider"
 version = "0.1.0"
 dependencies = [
  "async-trait",

@@ -38,7 +38,7 @@ the broader roadmap. Keep both synchronized and record evidence before checking 
 - [ ] 5.3 Run native GameCube and Wii discovery/matching/launch/repeated-Play acceptance in GameNode; record consent, cancellation, missing ROM, exit detection and playtime evidence with host/plugin revisions.
 - [x] 5.4 Run formatting, Clippy, workspace tests, git diff --check and strict OpenSpec validation; synchronize README, architecture, protocol and root backlog with actual completed behavior.
 
-- [x] 5.5 Bundle the signed Linux provider and extension under org.example.gamenode.dolphin.bundle 0.1.0; verify signatures, common publisher, exact two components and SHA-256 evidence. Native host acceptance remains in 5.3 and main-repo integration.
+- [x] 5.5 Bundle the signed Linux provider and extension under dev.richmont.gamenode.dolphin-emu.bundle 0.1.0; verify signatures, common publisher, exact two components and SHA-256 evidence. Native host acceptance remains in 5.3 and main-repo integration.
 
 ## Workflow follow-up
 

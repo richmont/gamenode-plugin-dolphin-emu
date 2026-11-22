@@ -1,7 +1,7 @@
 //! GameNode provider for GameCube and Wii games managed by Dolphin.
 //!
 //! Discovery only: this provider lists the games Dolphin already knows about. Starting them is
-//! the job of the sibling `gamenode-dolphin-launch` extension, because a custom launch needs the
+//! the job of the sibling `gamenode-dolphin-emu-launch` extension, because a custom launch needs the
 //! host's runtime/consent flow and `game.custom_launch` grant.
 
 pub mod catalog;
@@ -17,8 +17,8 @@ use gamenode_plugin_sdk::{
     },
 };
 
-pub const PLUGIN_ID: &str = "org.example.gamenode.dolphin";
-pub const PROVIDER_ID: &str = "dolphin";
+pub const PLUGIN_ID: &str = "dev.richmont.gamenode.dolphin-emu";
+pub const PROVIDER_ID: &str = "dolphin-emu";
 pub const PLUGIN_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub const CAPABILITIES: &[&str] = &[
@@ -90,7 +90,7 @@ impl ProviderPlugin for DolphinProvider {
                 if let Some(discovery) = &result.discovery {
                     if let Err(error) = catalog::publish(&host, &discovery.records).await {
                         // SDK errors contain safe categories, never server status text or paths.
-                        eprintln!("dolphin catalog publication: {error}");
+                        eprintln!("dolphin-emu catalog publication: {error}");
                     }
                 }
             }
@@ -112,7 +112,7 @@ mod tests {
         fs::write(directory.path().join("Zelda.iso"), b"GZLE01\x00\x00").unwrap();
         let provider = DolphinProvider::new(vec![directory.path().to_path_buf()]);
         let discovery = provider.discovery();
-        assert_eq!(discovery.provider_id, "dolphin");
+        assert_eq!(discovery.provider_id, "dolphin-emu");
         assert_eq!(discovery.records.len(), 1);
         assert_eq!(discovery.records[0].id, "GZLE01");
     }

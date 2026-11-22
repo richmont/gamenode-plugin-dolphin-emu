@@ -147,7 +147,7 @@ fn path_id(path: &Path) -> String {
         hash ^= u64::from(*byte);
         hash = hash.wrapping_mul(0x0000_0100_0000_01b3);
     }
-    format!("dolphin-{hash:016x}")
+    format!("dolphin-emu-{hash:016x}")
 }
 
 /// One discovery record for one ROM. The folder is the install directory so the library groups
@@ -291,7 +291,7 @@ mod tests {
         let first = record_for(&path).unwrap();
         let second = record_for(&path).unwrap();
         assert_eq!(first.id, second.id);
-        assert!(first.id.starts_with("dolphin-"));
+        assert!(first.id.starts_with("dolphin-emu-"));
         assert_eq!(first.name, "Homebrew Demo");
         assert_eq!(first.fields["platform"], "unknown");
     }

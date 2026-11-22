@@ -55,7 +55,7 @@ The plugin SHALL use GameNode persistent Storage for bounded versioned cache rec
 - **THEN** metadata can be rebuilt without deleting host library matches or history.
 
 ### Requirement: Durable shared disc catalog
-The provider SHALL publish schema-1 catalog metadata to `org.gamenode.dolphin.catalog.v1` with PERSISTENT durability, optional data.publish/storage.persist grants and a stable producer-scoped resource ID. Publication SHALL exclude private paths, credentials and execution fields; denial SHALL preserve discovery without a volatile fallback.
+The provider SHALL publish schema-1 catalog metadata to `dev.richmont.gamenode.dolphin-emu.catalog.v1` with PERSISTENT durability, optional data.publish/storage.persist grants and a stable producer-scoped resource ID. Publication SHALL exclude private paths, credentials and execution fields; denial SHALL preserve discovery without a volatile fallback.
 
 #### Scenario: Repeated publication
 - **WHEN** the same producer rescans a known disc

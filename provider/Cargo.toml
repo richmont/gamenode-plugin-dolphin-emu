@@ -1,5 +1,5 @@
 [package]
-name = "gamenode-dolphin-provider"
+name = "gamenode-dolphin-emu-provider"
 description = "GameNode provider that discovers GameCube and Wii games configured in Dolphin"
 version.workspace = true
 edition.workspace = true
@@ -20,4 +20,4 @@ tokio-stream = { version = "0.1", features = ["net"] }
 prost = "0.14"
 
 [lib]
-name = "gamenode_dolphin_provider"
+name = "gamenode_dolphin_emu_provider"

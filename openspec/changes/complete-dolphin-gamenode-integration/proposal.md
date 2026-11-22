@@ -27,7 +27,7 @@ Dolphin runtime connected to GameNode's supervised launch flow.
 ### New Capabilities
 
 - `dolphin-metadata`: disc identity, local title resolution, catalog matching and bounded persistent caches.
-- `dolphin-launch`: approved runtime/content recipes, durable references and supervised execution.
+- `dolphin-emu-launch`: approved runtime/content recipes, durable references and supervised execution.
 - `dolphin-distribution`: verifiable component packages and platform acceptance.
 
 ### Modified Capabilities
