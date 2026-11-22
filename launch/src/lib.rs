@@ -746,7 +746,8 @@ impl DolphinLaunch {
         let (runtime, runtime_reused) =
             resolve_runtime(host, &state, &spec, &hints, force_refresh).await?;
 
-        let content_changed = state.content_id.is_empty()
+        let content_changed = force_refresh
+            || state.content_id.is_empty()
             || state.content_revision == 0
             || state.game_id != game_id
             || state.runtime_id != runtime.id
