@@ -87,6 +87,9 @@ Do not work around this by spawning Dolphin from the plugin.
   silently.
 - Correct identity-based deduplication independently of display-name sorting; cover overlapping
   roots, copied ROMs, multiple revisions and multidisc titles.
+- [x] Report `.dol`/`.elf` homebrew executables with the path-derived id, `unknown` platform and no
+  invented disc id, and omit `disc_id` from their catalog payload. Unit-tested; native host
+  acceptance remains in section 6.
 
 Acceptance: unit tests for every parser, a scan with >10k entries, and explicit depth/50k-entry
 boundary, symlink and overlapping-root tests. Existing tests do not establish those limits.

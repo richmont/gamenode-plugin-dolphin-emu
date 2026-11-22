@@ -38,7 +38,7 @@ permission is not a grant.
 `ProviderOperation::Discover` answers with `DiscoveryResult`:
 
 ```text
-id          provider-local id (disc id or stable hash)
+id          provider-local id (disc id, filename id, or stable path hash)
 name        display title
 install_dir folder containing the ROM (normalized, forward slashes)
 fields      rom, platform, game_id
@@ -47,6 +47,11 @@ target      unset (no detected executable)
 
 `provider.context.read` is checked first: the provider id in the reply must match `dolphin`.
 Discovery is read-only and must not start a process.
+
+`.dol` and `.elf` homebrew executables are reported by the same scan. They have no disc header, so
+they keep the path-derived `dolphin-emu-<hash>` id, send an empty `fields.game_id` and report
+`platform = "unknown"`; the file name is not mined for a disc id. Launch is unchanged: the host
+still passes the file to `-b -e`.
 
 The current `fields.game_id` identifies the disc; it must never populate an RPC's GameNode
 `game_id`. The planned `disc_id` field will retain a compatibility reader for old entries.
@@ -155,10 +160,12 @@ After worker-thread scanning, the provider asynchronously calls public SDK
 `host.resources().ok_or(Error::Protocol)?` and `Resources::data_publish(key, 0, request)`.
 The SDK supplies mutation/session context; the plugin never constructs it manually.
 Dataset and schema are `dev.richmont.gamenode.dolphin-emu.catalog.v1`, version 1, `PERSISTENT`, TTL 0.
-The four string fields are `disc_id`, `title`, `platform` and `content_id`. Platform is
-`gamecube`, `wii`, or `unknown` when the current scanner cannot identify it. Title currently comes
-from the cleaned filename, not Dolphin's title database. There is no fabricated GameNode catalog
-ID: matching and local title database resolution remain pending.
+The string fields are `title`, `platform` and `content_id`, plus `disc_id` when a disc header or a
+`GZLE01 - Title` file name supplied one. Homebrew executables publish no `disc_id` field at all
+rather than an empty string. Platform is `gamecube`, `wii`, or `unknown` when the current scanner
+cannot identify it. Title currently comes from the cleaned filename, not Dolphin's title database.
+There is no fabricated GameNode catalog ID: matching and local title database resolution remain
+pending.
 
 `resource_id` and `content_id` use the disc ID when known, otherwise the scanner's stable opaque
 file ID. Copies, revisions and multiple discs sharing a six-character ID collapse into one
@@ -168,7 +175,7 @@ its host revision; same-identity rows from another publisher remain separate. Un
 are path-derived hashes, not content checksums; moving such a file changes its identity. A rescan
 is not a deletion or availability proof for older rows. Host retention/uninstall policy owns cleanup.
 
-Only these four metadata fields are published; discovery paths and filenames, handles, argv,
+Only these metadata fields are published; discovery paths and filenames, handles, argv,
 environment, credentials and session data are excluded. Provenance belongs to the host. Each
 publication has a fresh observation/idempotency ID, observation time and positive sequence;
 expected revision remains 0 under this API's append/replace contract. No automatic retry occurs.

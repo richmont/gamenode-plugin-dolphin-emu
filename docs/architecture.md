@@ -29,6 +29,11 @@ DOLPHIN_PLUGIN_ROOTS       ─┴─► scan (bounded) ─► DiscoveryRecord pe
 The provider never launches anything. It reports `provider_id = "dolphin-emu"`, one record per ROM,
 and no `DetectedTarget`.
 
+Homebrew executables (`.dol`, `.elf`) come through the same scan. They carry no disc header, so the
+record keeps the path-derived `dolphin-emu-<hash>` id, reports `platform` `unknown` and never
+borrows an id or strips a prefix from its file name. Discovery does not guess GameCube or Wii,
+because Dolphin homebrew exists for both; the launch path is unchanged.
+
 ## Launch
 
 ```text
@@ -141,10 +146,12 @@ After worker-thread scanning, the provider asynchronously calls public SDK
 `host.resources().ok_or(Error::Protocol)?` and `Resources::data_publish(key, 0, request)`.
 The SDK supplies mutation/session context; the plugin never constructs it manually.
 Dataset and schema are `dev.richmont.gamenode.dolphin-emu.catalog.v1`, version 1, `PERSISTENT`, TTL 0.
-The four string fields are `disc_id`, `title`, `platform` and `content_id`. Platform is
-`gamecube`, `wii`, or `unknown` when the current scanner cannot identify it. Title currently comes
-from the cleaned filename, not Dolphin's title database. There is no fabricated GameNode catalog
-ID: matching and local title database resolution remain pending.
+The string fields are `title`, `platform` and `content_id`, plus `disc_id` when a disc header or a
+`GZLE01 - Title` file name supplied one. Homebrew executables publish no `disc_id` field at all
+rather than an empty string. Platform is `gamecube`, `wii`, or `unknown` when the current scanner
+cannot identify it. Title currently comes from the cleaned filename, not Dolphin's title database.
+There is no fabricated GameNode catalog ID: matching and local title database resolution remain
+pending.
 
 `resource_id` and `content_id` use the disc ID when known, otherwise the scanner's stable opaque
 file ID. Copies, revisions and multiple discs sharing a six-character ID collapse into one
@@ -154,7 +161,7 @@ its host revision; same-identity rows from another publisher remain separate. Un
 are path-derived hashes, not content checksums; moving such a file changes its identity. A rescan
 is not a deletion or availability proof for older rows. Host retention/uninstall policy owns cleanup.
 
-Only these four metadata fields are published; discovery paths and filenames, handles, argv,
+Only these metadata fields are published; discovery paths and filenames, handles, argv,
 environment, credentials and session data are excluded. Provenance belongs to the host. Each
 publication has a fresh observation/idempotency ID, observation time and positive sequence;
 expected revision remains 0 under this API's append/replace contract. No automatic retry occurs.

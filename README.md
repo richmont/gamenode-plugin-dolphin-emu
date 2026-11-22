@@ -10,10 +10,11 @@ documentation as an external developer would see them.
 
 - **Discovery** (`provider/`): reads Dolphin's own `ISOPath0..N` entries from `Dolphin.ini`
   (Linux, Flatpak, Windows, macOS) plus `DOLPHIN_PLUGIN_ROOTS`, scans the folders recursively and
-  reports `.iso`, `.gcm`, `.rvz`, `.wbfs`, `.wia`, `.ciso` and `.gcz` games. Plain discs expose
-  their six-character game id (`GZLE01`, `RMCE01`); compressed containers fall back to a
-  `GZLE01 - Title` file name or a stable path hash. Hidden folders, symlinks, deep trees and huge
-  collections are bounded.
+  reports `.iso`, `.gcm`, `.rvz`, `.wbfs`, `.wia`, `.ciso`, `.gcz`, `.dol` and `.elf` games. Plain
+  discs expose their six-character game id (`GZLE01`, `RMCE01`); compressed containers fall back to
+  a `GZLE01 - Title` file name or a stable path hash. Homebrew executables (`.dol`, `.elf`) have no
+  disc header, so they keep a path-derived id and report `unknown` platform instead of a guessed
+  one. Hidden folders, symlinks, deep trees and huge collections are bounded.
 - **Durable catalog**: after discovery, publishes schema-1 records to
   `dev.richmont.gamenode.dolphin-emu.catalog.v1` using SDK `data_publish` and `PERSISTENT`. Optional
   `data.publish` and `storage.persist` grants enable publication; refusal is reported without
@@ -21,9 +22,9 @@ documentation as an external developer would see them.
 - **Launch recipe** (`launch/`): builds the Dolphin runtime (`-b -e <rom>`) and the immutable
   custom-launch recipe/content binding. The host supervises the process tree, so it detects when
   the game ends and attributes playtime; the plugin never starts a process itself.
-- Tests: `cargo test` covers game-id parsing, compressed-container fallback, Dolphin config
-  parsing, recursive scanning/hidden folders, runtime arguments and recipe immutability. Explicit
-  depth and entry-limit regression tests remain pending.
+- Tests: `cargo test` covers game-id parsing, compressed-container fallback, homebrew executable
+  identity, Dolphin config parsing, recursive scanning/hidden folders, runtime arguments and
+  recipe immutability. Explicit depth and entry-limit regression tests remain pending.
 
 ## What is still a task
 
