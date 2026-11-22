@@ -30,9 +30,9 @@ job rechecks its approval fence.
 6. Persists only runtime/content/recipe IDs and revisions plus ROM name/size/modification time in
    private `Storage` with `PERSISTENT` durability.
 
-A stale-recipe refusal before any job is created is repaired by one fresh proposal/request. A
-transport timeout or any reply that created a job is not retried, so the extension cannot start
-Dolphin twice.
+A stale-recipe refusal before any job is created is repaired by one fresh content registration,
+proposal and request. A transport timeout or any reply that created a job is not retried, so the
+extension cannot start Dolphin twice.
 
 ## Contract decisions
 
