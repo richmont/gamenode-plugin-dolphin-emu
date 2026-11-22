@@ -79,8 +79,10 @@ Do not work around this by spawning Dolphin from the plugin.
 
 ## 2. Provider robustness
 
-- Parse RVZ/WBFS/WIA headers for the real disc id and title; currently they fall back to the file
-  name. Add fixtures with real headers (small synthetic files are enough).
+- [x] Parse RVZ headers for the real disc id and internal title, and read the title from plain
+  `.iso`/`.gcm` headers. Unit fixtures cover both; an env-gated `DOLPHIN_RVZ_PATH` test reads a
+  real file. WBFS/WIA still fall back to the file name and need their own header offsets.
+- [ ] Add WBFS/WIA header fixtures once their offsets are verified against real images.
 - `tokio::task::spawn_blocking` already runs the scan; retain it and verify responsiveness.
 - Windows paths: `Dolphin.ini` may quote paths or use forward slashes; normalize and test.
 - Multiple Dolphin profiles / Flatpak and native configs; deduplicate roots; ignore missing roots

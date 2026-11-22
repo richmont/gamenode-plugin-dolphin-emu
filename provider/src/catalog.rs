@@ -34,8 +34,13 @@ pub fn publication(record: &DiscoveryRecord) -> DataPublishRequest {
     if !disc_id.is_empty() {
         fields.insert("disc_id".to_owned(), text(disc_id.clone()));
     }
+    let title = record
+        .fields
+        .get("title")
+        .cloned()
+        .unwrap_or_else(|| record.name.clone());
     for (key, value) in [
-        ("title", record.name.clone()),
+        ("title", title),
         ("platform", platform.to_owned()),
         ("content_id", resource_id.clone()),
     ] {
@@ -133,5 +138,21 @@ mod tests {
         assert_eq!(request.resource_id, "GZLE01");
         assert_eq!(field(&request, "disc_id"), Some("GZLE01"));
         assert_eq!(field(&request, "platform"), Some("gamecube"));
+    }
+
+    #[test]
+    fn the_published_title_prefers_the_disc_header() {
+        let mut with_title = record("GPIE01", "GPIE01", "gamecube");
+        with_title
+            .fields
+            .insert("title".to_owned(), "Pikmin".to_owned());
+        assert_eq!(field(&publication(&with_title), "title"), Some("Pikmin"));
+
+        let fallback = record("GZLE01", "GZLE01", "gamecube");
+        assert_eq!(
+            field(&publication(&fallback), "title"),
+            Some("Homebrew"),
+            "a record without a header title keeps the cleaned file name"
+        );
     }
 }

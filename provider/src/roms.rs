@@ -7,8 +7,8 @@ use std::path::{Path, PathBuf};
 
 use gamenode_plugin_sdk::proto::DiscoveryRecord;
 
-/// Extensions Dolphin can load. `iso`/`gcm` carry a plain disc header; the compressed
-/// containers keep it elsewhere, so their game id falls back to the file name. `dol`/`elf`
+/// Extensions Dolphin can load. `iso`/`gcm` carry a plain disc header; RVZ keeps that header at
+/// an offset, and WBFS/WIA currently fall back to the file name for their id. `dol`/`elf`
 /// are bare homebrew executables with neither a disc header nor a disc id.
 pub const ROM_EXTENSIONS: &[&str] = &[
     "iso", "gcm", "rvz", "wbfs", "wia", "ciso", "gcz", "dol", "elf",
@@ -98,27 +98,64 @@ pub fn is_executable(path: &Path) -> bool {
     has_extension(path, EXECUTABLE_EXTENSIONS)
 }
 
-/// A plain GameCube/Wii disc starts with a six-character id such as `GZLE01` or `RMCE01`.
-/// Compressed containers (RVZ/WBFS/WIA) do not expose that header at offset 0.
-pub fn read_game_id(path: &Path) -> Option<String> {
-    let mut file = fs::File::open(path).ok()?;
-    let mut header = [0u8; 8];
-    let read = file.read(&mut header).ok()?;
-    if read < 6 {
-        return None;
-    }
-    if matches!(&header[..4], b"RVZ\x01" | b"WBFS" | b"WIA\x01") {
-        return None;
-    }
-    let id = &header[..6];
-    if id
-        .iter()
+/// RVZ stores the first 0x100 bytes of the disc image (its header) at this offset.
+const RVZ_DISC_HEADER_OFFSET: usize = 0x58;
+const DISC_HEADER_LEN: usize = 0x100;
+/// Inside the disc header: the six-character id and the console's own title field.
+const DISC_ID_LEN: usize = 6;
+const DISC_TITLE_OFFSET: usize = 0x20;
+const DISC_TITLE_LEN: usize = 0x40;
+
+/// The uncompressed disc header a GameCube/Wii image carries: its id and internal title.
+struct DiscHeader {
+    id: Option<String>,
+    title: Option<String>,
+}
+
+fn is_disc_id(id: &[u8]) -> bool {
+    id.iter()
         .all(|byte| byte.is_ascii_uppercase() || byte.is_ascii_digit())
-    {
-        Some(String::from_utf8_lossy(id).into_owned())
+}
+
+/// The console title field, up to the first NUL and trimmed of padding.
+fn disc_title(bytes: &[u8]) -> Option<String> {
+    let end = bytes
+        .iter()
+        .position(|byte| *byte == 0)
+        .unwrap_or(bytes.len());
+    let title = String::from_utf8_lossy(&bytes[..end]);
+    let title = title.trim();
+    (!title.is_empty() && !title.chars().any(char::is_control)).then(|| title.to_owned())
+}
+
+/// Reads the disc header of a plain image or of an RVZ container. WBFS/WIA are recognised but
+/// their header layout is not read yet, so their id still falls back to the file name.
+fn disc_header(path: &Path) -> Option<DiscHeader> {
+    let file = fs::File::open(path).ok()?;
+    let mut buffer = Vec::with_capacity(RVZ_DISC_HEADER_OFFSET + DISC_HEADER_LEN);
+    file.take((RVZ_DISC_HEADER_OFFSET + DISC_HEADER_LEN) as u64)
+        .read_to_end(&mut buffer)
+        .ok()?;
+    let header = if buffer.starts_with(b"RVZ\x01") {
+        buffer.get(RVZ_DISC_HEADER_OFFSET..)?
+    } else if buffer.starts_with(b"WBFS") || buffer.starts_with(b"WIA\x01") {
+        return None;
     } else {
-        None
-    }
+        buffer.as_slice()
+    };
+    let id = header
+        .get(..DISC_ID_LEN)
+        .filter(|id| is_disc_id(id))
+        .map(|id| String::from_utf8_lossy(id).into_owned());
+    let title = header
+        .get(DISC_TITLE_OFFSET..DISC_TITLE_OFFSET + DISC_TITLE_LEN)
+        .and_then(disc_title);
+    Some(DiscHeader { id, title })
+}
+
+/// A plain GameCube/Wii disc starts with a six-character id such as `GZLE01` or `RMCE01`.
+pub fn read_game_id(path: &Path) -> Option<String> {
+    disc_header(path)?.id
 }
 
 /// Dolphin users often name compressed files `GZLE01 - The Legend of Zelda.iso`.
@@ -182,28 +219,32 @@ pub fn record_for(path: &Path) -> Option<DiscoveryRecord> {
         return None;
     }
     let install_dir = path.parent()?.to_string_lossy().replace('\\', "/");
+    let header = (!executable).then(|| disc_header(path)).flatten();
     let game_id = if executable {
         None
     } else {
-        let from_header = read_game_id(path);
-        let from_name = id_from_filename(
-            file_name
-                .rsplit_once('.')
-                .map_or(file_name, |(stem, _)| stem),
-        );
-        from_header.or(from_name)
+        header
+            .as_ref()
+            .and_then(|header| header.id.clone())
+            .or_else(|| {
+                id_from_filename(file_name.rsplit_once('.').map_or(file_name, |(stem, _)| stem))
+            })
     };
     let id = game_id.clone().unwrap_or_else(|| path_id(path));
     let platform = platform_of(game_id.as_deref());
+    let mut fields = std::collections::HashMap::from([
+        ("rom".to_owned(), file_name.to_owned()),
+        ("platform".to_owned(), platform.to_owned()),
+        ("game_id".to_owned(), game_id.clone().unwrap_or_default()),
+    ]);
+    if let Some(title) = header.and_then(|header| header.title) {
+        fields.insert("title".to_owned(), title);
+    }
     Some(DiscoveryRecord {
         id,
         name,
         install_dir,
-        fields: std::collections::HashMap::from([
-            ("rom".to_owned(), file_name.to_owned()),
-            ("platform".to_owned(), platform.to_owned()),
-            ("game_id".to_owned(), game_id.clone().unwrap_or_default()),
-        ]),
+        fields,
         target: None,
     })
 }
@@ -305,6 +346,54 @@ mod tests {
         assert_eq!(record.id, "RMCE01");
         assert_eq!(record.name, "Mario Kart Wii");
         assert_eq!(record.fields["platform"], "wii");
+    }
+
+    #[test]
+    fn rvz_headers_expose_the_disc_id_and_internal_title() {
+        let directory = tempfile::tempdir().unwrap();
+        let mut header = vec![0u8; RVZ_DISC_HEADER_OFFSET + DISC_HEADER_LEN];
+        header[..4].copy_from_slice(b"RVZ\x01");
+        header[RVZ_DISC_HEADER_OFFSET..RVZ_DISC_HEADER_OFFSET + DISC_ID_LEN]
+            .copy_from_slice(b"GPIE01");
+        let title = RVZ_DISC_HEADER_OFFSET + DISC_TITLE_OFFSET;
+        header[title..title + 6].copy_from_slice(b"Pikmin");
+        let path = write_rom(directory.path(), "Pikmin (USA) (Rev 1).rvz", &header);
+
+        assert_eq!(read_game_id(&path).as_deref(), Some("GPIE01"));
+        let record = record_for(&path).unwrap();
+        assert_eq!(record.id, "GPIE01");
+        assert_eq!(record.name, "Pikmin (USA) (Rev 1)");
+        assert_eq!(record.fields["platform"], "gamecube");
+        assert_eq!(record.fields["title"], "Pikmin");
+    }
+
+    #[test]
+    fn a_real_rvz_exposes_its_identity_when_the_acceptance_path_is_set() {
+        let Some(path) = std::env::var_os("DOLPHIN_RVZ_PATH") else {
+            return;
+        };
+        let record = record_for(Path::new(&path)).expect("a discovery record");
+        let id = &record.fields["game_id"];
+        assert_eq!(id.len(), 6, "{id}");
+        assert!(
+            id.chars()
+                .all(|character| character.is_ascii_uppercase() || character.is_ascii_digit())
+        );
+        assert_ne!(record.fields["platform"], "unknown");
+        assert!(record.fields.contains_key("title"));
+    }
+
+    #[test]
+    fn plain_discs_expose_the_header_title_when_present() {
+        let directory = tempfile::tempdir().unwrap();
+        let mut header = vec![0u8; DISC_HEADER_LEN];
+        header[..6].copy_from_slice(b"GZLE01");
+        let title = b"The Legend of Zelda";
+        header[DISC_TITLE_OFFSET..DISC_TITLE_OFFSET + title.len()].copy_from_slice(title);
+        let path = write_rom(directory.path(), "zelda.iso", &header);
+
+        let record = record_for(&path).unwrap();
+        assert_eq!(record.fields["title"], "The Legend of Zelda");
     }
 
     #[test]

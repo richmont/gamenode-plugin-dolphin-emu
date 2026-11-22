@@ -163,7 +163,7 @@ Dataset and schema are `dev.richmont.gamenode.dolphin-emu.catalog.v1`, version 1
 The string fields are `title`, `platform` and `content_id`, plus `disc_id` when a disc header or a
 `GZLE01 - Title` file name supplied one. Homebrew executables publish no `disc_id` field at all
 rather than an empty string. Platform is `gamecube`, `wii`, or `unknown` when the current scanner
-cannot identify it. Title currently comes from the cleaned filename, not Dolphin's title database.
+cannot identify it. Title comes from the disc header (plain images and RVZ) when readable, else from the cleaned filename; WBFS/WIA still fall back to the file name. Dolphin's title database is not read yet.
 There is no fabricated GameNode catalog ID: matching and local title database resolution remain
 pending.
 
