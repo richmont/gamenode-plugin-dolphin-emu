@@ -1572,6 +1572,8 @@ mod tests {
     fn the_manifest_declares_exactly_the_requested_capabilities() {
         let manifest: serde_json::Value =
             serde_json::from_str(include_str!("../package/plugin.json")).unwrap();
+        assert_eq!(manifest["id"], PLUGIN_ID);
+        assert_eq!(manifest["version"], PLUGIN_VERSION);
         let permissions = manifest["permissions"].as_array().unwrap();
         let mut declared = std::collections::BTreeSet::new();
         for permission in permissions {
