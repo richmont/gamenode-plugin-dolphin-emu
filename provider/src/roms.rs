@@ -227,7 +227,11 @@ pub fn record_for(path: &Path) -> Option<DiscoveryRecord> {
             .as_ref()
             .and_then(|header| header.id.clone())
             .or_else(|| {
-                id_from_filename(file_name.rsplit_once('.').map_or(file_name, |(stem, _)| stem))
+                id_from_filename(
+                    file_name
+                        .rsplit_once('.')
+                        .map_or(file_name, |(stem, _)| stem),
+                )
             })
     };
     let id = game_id.clone().unwrap_or_else(|| path_id(path));
