@@ -605,6 +605,7 @@ pub struct LaunchReport {
 
 struct Prepared {
     entry: LibraryEntry,
+    target_revision: u64,
     rom_name: String,
     runtime_id: String,
     runtime_revision: u64,
@@ -638,6 +639,14 @@ impl DolphinLaunch {
         let target = host.target();
         let game_id = target.game_id.trim().to_owned();
         let installation_id = target.installation_id.trim().to_owned();
+        // The host's launch-approval fence compares the extension request with the session
+        // target revision, not the library entry revision (they are different values).
+        let target_revision = target.revision.trim().parse::<u64>().map_err(|_| {
+            LaunchError::new(
+                "stale_state",
+                "GameNode did not issue a valid game revision. Start the game again.",
+            )
+        })?;
         if game_id.is_empty() || installation_id.is_empty() {
             return Err(LaunchError::new(
                 "no_target",
@@ -650,13 +659,20 @@ impl DolphinLaunch {
         let mut last_refusal = None;
         for attempt in 0..2 {
             let prepared = self
-                .prepare(host, &game_id, &installation_id, intent, force_refresh)
+                .prepare(
+                    host,
+                    &game_id,
+                    &installation_id,
+                    target_revision,
+                    intent,
+                    force_refresh,
+                )
                 .await?;
             let reply = host
                 .request_recipe(
                     &prepared.entry.game_id,
                     &installation_id,
-                    prepared.entry.revision,
+                    prepared.target_revision,
                     &prepared.recipe_id,
                     prepared.recipe_revision,
                     intent,
@@ -685,6 +701,7 @@ impl DolphinLaunch {
         host: &H,
         game_id: &str,
         installation_id: &str,
+        target_revision: u64,
         intent: &str,
         force_refresh: bool,
     ) -> Result<Prepared, LaunchError> {
@@ -835,7 +852,7 @@ impl DolphinLaunch {
                 installation_id,
                 &content_id,
                 &runtime.id,
-                entry.revision,
+                target_revision,
             );
             let reply = host
                 .propose_recipe(&proposed, intent, &idempotency_key())
@@ -860,6 +877,7 @@ impl DolphinLaunch {
 
         Ok(Prepared {
             entry,
+            target_revision,
             rom_name: rom.name,
             runtime_id: runtime.id,
             runtime_revision: runtime.revision,

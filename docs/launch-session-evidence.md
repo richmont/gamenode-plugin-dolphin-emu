@@ -120,3 +120,14 @@ CARGO_INCREMENTAL=0
   SHA-256 `97e3ef048c2a581a89178541bd9fc1f37719fb2927a777c4fcad084f4740f9c9`.
 - The 0.2.0 publisher key cannot verify this bundle, so importing it requires a fresh trust review
   (or uninstalling 0.2.0 with Keep data first). No tag, push or GitHub release was made.
+
+## 0.3.1 target-revision fix (2026-11-22)
+
+- Production fences an extension launch request against the **session target revision**
+  (`TargetGameContext.revision`), not the `LibraryGet` entry revision. They are different values
+  on a real host (the Dolphin fixture uses target 100 and entry 7). The extension now parses
+  `host.target().revision` and sends that value to `Propose`/`Request`; the reference host fixture
+  was corrected to fence on the target revision, since its old entry-revision check hid the bug.
+- Bundle: `/home/rich/gamenode/gamenode-plugin-dolphin-emu/dist/dolphin-emu-0.3.1-linux-x64.gnbundle`;
+  SHA-256 `f6686e37538bb2ca794d8d4ef42d599371f55d92e97488f0246eace7ebc5dac9`; same development
+  publisher fingerprint as 0.3.0. Local test bundle, no tag or push.

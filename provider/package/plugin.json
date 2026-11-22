@@ -4,7 +4,7 @@
   "kind": "provider",
   "provider_id": "dolphin-emu",
   "name": "Dolphin GameCube and Wii",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "api": {
     "min": "1.6.0",
     "max": "1.6.0"

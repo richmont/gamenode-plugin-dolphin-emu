@@ -445,7 +445,14 @@ impl ReferenceHost {
         let request = request.into_inner();
         self.authorize(request.context.as_ref())?;
         let mut state = self.state.lock().unwrap();
-        if request.expected_revision != state.entry.revision {
+        // Production fences an extension request against the session target revision, not
+        // the library entry revision; they are different values on a real host.
+        let target_revision = state
+            .target
+            .revision
+            .parse::<u64>()
+            .map_err(|_| Status::failed_precondition("invalid target revision"))?;
+        if request.expected_revision != target_revision {
             return Err(Status::failed_precondition("library entry changed"));
         }
         if request.game_id != state.entry.game_id
@@ -541,7 +548,14 @@ impl ReferenceHost {
             state.refuse_request_once = false;
             return Err(Status::aborted("custom launch recipe revision changed"));
         }
-        if request.expected_revision != state.entry.revision {
+        // Production fences an extension request against the session target revision, not
+        // the library entry revision; they are different values on a real host.
+        let target_revision = state
+            .target
+            .revision
+            .parse::<u64>()
+            .map_err(|_| Status::failed_precondition("invalid target revision"))?;
+        if request.expected_revision != target_revision {
             return Err(Status::failed_precondition("library entry changed"));
         }
         let (revision, _stored) = state
@@ -812,7 +826,7 @@ async fn first_play_uses_only_opaque_host_values_and_never_execution_overrides()
         },
         Call::StoragePut(format!("{STATE_PREFIX}install-1"), 0),
         Call::Propose {
-            expected_revision: 7,
+            expected_revision: 100,
             content_id: "content-1".into(),
             runtime_handle: "runtime-1".into(),
             executable_handle: String::new(),
@@ -826,7 +840,7 @@ async fn first_play_uses_only_opaque_host_values_and_never_execution_overrides()
         },
         Call::StoragePut(format!("{STATE_PREFIX}install-1"), 1),
         Call::Request {
-            expected_revision: 7,
+            expected_revision: 100,
             recipe_id: "recipe-1".into(),
             recipe_revision: 1,
             intent: "intent-first".into(),
@@ -905,7 +919,7 @@ async fn repeated_play_reuses_the_runtime_content_and_recipe() {
     );
     assert!(calls.contains(&Call::RuntimesGet("runtime-1".into())));
     assert!(calls.contains(&Call::Request {
-        expected_revision: 7,
+        expected_revision: 100,
         recipe_id: "recipe-1".into(),
         recipe_revision: 1,
         intent: "intent-second".into(),
