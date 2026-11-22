@@ -9,30 +9,35 @@
     "min": "1.6.0",
     "max": "1.6.0"
   },
+  "supported_platforms": ["gamecube", "wii"],
   "permissions": [
     {
       "id": "provider.context.read",
       "required": true,
       "scope": "own-provider",
-      "reason": "Read the host-issued provider context."
+      "reason": "Read the host-issued provider context.",
+      "impact_if_disabled": "The provider cannot read the host-issued context and cannot discover games."
     },
     {
       "id": "library.discovery",
       "required": false,
       "scope": "own-provider",
-      "reason": "Report the GameCube and Wii games configured in Dolphin."
+      "reason": "Report the GameCube and Wii games configured in Dolphin.",
+      "impact_if_disabled": "GameNode cannot discover GameCube and Wii games from Dolphin."
     },
     {
       "id": "data.publish",
       "required": false,
       "scope": "own-provider",
-      "reason": "Publish disc identifiers and titles to the reviewed Dolphin catalog dataset."
+      "reason": "Publish disc identifiers and titles to the reviewed Dolphin catalog dataset.",
+      "impact_if_disabled": "The Dolphin disc catalog cannot be shared with other plugins."
     },
     {
       "id": "storage.persist",
       "required": false,
       "scope": "own-provider",
-      "reason": "Retain this provider's catalog records while Dolphin is stopped."
+      "reason": "Retain this provider's catalog records while Dolphin is stopped.",
+      "impact_if_disabled": "The catalog disappears when the provider stops and cannot be read later."
     }
   ],
   "targets": [

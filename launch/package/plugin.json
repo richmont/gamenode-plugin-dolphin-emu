@@ -8,54 +8,63 @@
     "min": "1.6.0",
     "max": "1.6.0"
   },
+  "supported_platforms": ["gamecube", "wii"],
   "permissions": [
     {
       "id": "provider.context.read",
       "required": true,
       "scope": "selected game",
-      "reason": "Read the host-issued session and selected target context."
+      "reason": "Read the host-issued session and selected target context.",
+      "impact_if_disabled": "The extension cannot read the selected game context."
     },
     {
       "id": "game.custom_launch",
       "required": true,
       "scope": "selected game",
-      "reason": "Propose and run the reviewed Dolphin launch recipe."
+      "reason": "Propose and run the reviewed Dolphin launch recipe.",
+      "impact_if_disabled": "GameNode cannot launch a game through Dolphin."
     },
     {
       "id": "library.read",
       "required": false,
       "scope": "selected game",
-      "reason": "Read the selected library entry to find its ROM."
+      "reason": "Read the selected library entry to find its ROM.",
+      "impact_if_disabled": "The extension cannot read the selected library entry to find its ROM."
     },
     {
       "id": "files.read",
       "required": false,
       "scope": "selected game",
-      "reason": "Open the approved ROM and Dolphin executable handles."
+      "reason": "Open the approved ROM and Dolphin executable handles.",
+      "impact_if_disabled": "The extension cannot open the approved ROM or Dolphin executable."
     },
     {
       "id": "game.runtime.read",
       "required": false,
       "scope": "own-provider",
-      "reason": "Find the approved Dolphin runtime."
+      "reason": "Find the approved Dolphin runtime.",
+      "impact_if_disabled": "The extension cannot find the approved Dolphin runtime."
     },
     {
       "id": "game.runtime.create",
       "required": false,
       "scope": "own-provider",
-      "reason": "Register Dolphin once the user approves its executable."
+      "reason": "Register Dolphin once the user approves its executable.",
+      "impact_if_disabled": "The first Dolphin registration cannot be created."
     },
     {
       "id": "game.runtime.update",
       "required": false,
       "scope": "own-provider",
-      "reason": "Update the runtime version after a Dolphin upgrade."
+      "reason": "Update the runtime version after a Dolphin upgrade.",
+      "impact_if_disabled": "A Dolphin upgrade must be re-registered manually."
     },
     {
       "id": "game.runtime.delete",
       "required": false,
       "scope": "own-provider",
-      "reason": "Remove the runtime when the user uninstalls the extension."
+      "reason": "Remove the runtime when the user uninstalls the extension.",
+      "impact_if_disabled": "Uninstalling the extension cannot remove its runtime registration."
     }
   ],
   "targets": [
