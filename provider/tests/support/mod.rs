@@ -325,6 +325,12 @@ impl resource_host_server::ResourceHost for ReferenceHost {
     ) -> std::result::Result<tonic::Response<Self::RuntimesWatchStream>, tonic::Status> {
         Err(Status::unimplemented("reference host: unused RPC"))
     }
+    async fn runtimes_request_access(
+        &self,
+        _request: tonic::Request<RuntimeRequestAccessRequest>,
+    ) -> std::result::Result<tonic::Response<RuntimeMutationReply>, tonic::Status> {
+        Err(Status::unimplemented("reference host: unused RPC"))
+    }
     async fn runtimes_register(
         &self,
         _request: tonic::Request<RuntimeRegisterRequest>,
