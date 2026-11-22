@@ -33,12 +33,12 @@ the broader roadmap. Keep both synchronized and record evidence before checking 
 
 ## 5. MVP packaging and acceptance
 
-- [x] 5.1 Build and verify both signed Linux x86_64 development packages with non-placeholder keys kept outside the repo; verify binary/manifest targets and permission parity, and document reproducible packaging commands and dependency notices (`docs/durable-catalog-evidence.md`).
+- [x] 5.1 Build and verify both signed Linux x86_64 development packages with non-placeholder keys kept outside the repo; verify binary/manifest targets and permission parity, and document reproducible packaging commands and dependency notices (`docs/durable-catalog-evidence.md`). Both manifests declare `supported_platforms` and a signed `impact_if_disabled` per permission, re-signed with the same development key.
 - [ ] 5.2 Add CI for formatting, Clippy, workspace tests and package verification; verify the pipeline uses an external Cargo target and document SDK/API compatibility policy.
 - [ ] 5.3 Run native GameCube and Wii discovery/matching/launch/repeated-Play acceptance in GameNode; record consent, cancellation, missing ROM, exit detection and playtime evidence with host/plugin revisions.
 - [x] 5.4 Run formatting, Clippy, workspace tests, git diff --check and strict OpenSpec validation; synchronize README, architecture, protocol and root backlog with actual completed behavior.
 
-- [x] 5.5 Bundle the signed Linux provider and extension under dev.richmont.gamenode.dolphin-emu.bundle 0.1.0; verify signatures, common publisher, exact two components and SHA-256 evidence. Native host acceptance remains in 5.3 and main-repo integration.
+- [x] 5.5 Bundle the signed Linux provider and extension under dev.richmont.gamenode.dolphin-emu.bundle 0.1.0; verify signatures, common publisher, exact two components and SHA-256 evidence (`docs/durable-catalog-evidence.md`). Native host acceptance remains in 5.3 and main-repo integration.
 
 ## Workflow follow-up
 

@@ -94,9 +94,16 @@ Artifacts (outside Git, in `dist/`):
 
 | Artifact | SHA-256 |
 | --- | --- |
-| `dist/dolphin-emu-provider.gnplugin` | `e7243b6816081b56c6edccc6e1ae5854053bdb462884f2b25e5d2aba7b6afd14` |
-| `dist/dolphin-emu-launch.gnplugin` | `56670c46779084ae0026863e4e4268572daa429edc73a1a48f46aa3cc6911f8e` |
-| `dist/dolphin-emu-0.1.0-linux-x64.gnbundle` | `2718d7fd4a42359e63b03f46622758570cdf2acb6e57096acaaf1ca85b0070b3` |
+| `dist/dolphin-emu-provider.gnplugin` | `005923ca1c9468fec0cf3ea42cdac12249ba33e6c623e96670c8687c4a0a7fc6` |
+| `dist/dolphin-emu-launch.gnplugin` | `00e10cde7b53d8af4a0ae01cf379b6aca636206a316d4b5fede50ca0437f5283` |
+| `dist/dolphin-emu-0.1.0-linux-x64.gnbundle` | `543271dce6ae46b42e7f32a022e28fe1751e71f7398ec3ac8424f38ccbed7012` |
+
+Review contract (2026-11-21): both manifests now declare `supported_platforms`
+`["gamecube", "wii"]` (content platforms, not OS targets) and a signed `impact_if_disabled` for
+every permission, so the import review can explain what stops working when an optional grant is
+switched off. The provider binary also carries the homebrew `.dol`/`.elf` discovery change, so the
+hashes moved again; publisher key, plugin ids, provider id, bundle id/version and dataset
+namespace are unchanged.
 
 Pre-release identity note (2026-11-21): the package, bundle, provider and dataset identifiers were
 renamed from `org.example.gamenode.dolphin*` / `org.gamenode.dolphin.catalog.v1` to

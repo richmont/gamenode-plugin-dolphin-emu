@@ -94,7 +94,9 @@ sha256sum dist/*.gnplugin dist/*.gnbundle
 ```
 
 Import the bundle in GameNode, review the development publisher fingerprint, then grant each
-component's permissions. The intended host flow provides one review, one inventory row and one
+component's permissions. Both manifests declare `supported_platforms` (`gamecube`, `wii`) and a
+signed `impact_if_disabled` for every permission, so the review explains what stops working when
+an optional grant is denied. The intended host flow provides one review, one inventory row and one
 uninstall for both components. Package verification does not establish native UI acceptance.
 The integration session must record those checks and a permitted consumer reading the durable
 catalog after the provider stops. Launch remains a placeholder; known launch-session blockers
