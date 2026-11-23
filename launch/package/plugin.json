@@ -3,7 +3,7 @@
   "id": "dev.richmont.gamenode.dolphin-emu-launch",
   "kind": "extension",
   "name": "Dolphin launch",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "api": {
     "min": "1.6.0",
     "max": "1.6.0"
@@ -108,11 +108,17 @@
       "arch": "x86_64",
       "abi": "gnu",
       "entrypoint": "bin/linux-x64/plugin"
+    },
+    {
+      "os": "windows",
+      "arch": "x86_64",
+      "abi": "msvc",
+      "entrypoint": "bin/windows-x64/plugin.exe"
     }
   ],
   "publisher": {
     "key_id": "richmont-dolphin-emu-development",
-    "public_key": "ZxCVv9hD2lgmZWngI63mkpun0uXl8FenLTbb03Icaf0="
+    "public_key": "/Oev14e1JdRD6xbF86fLKJv3TIKTw17iRDvwMrtTDRE="
   },
   "license": {
     "expression": "GPL-3.0-only",
