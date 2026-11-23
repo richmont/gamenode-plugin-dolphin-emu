@@ -131,3 +131,15 @@ CARGO_INCREMENTAL=0
 - Bundle: `/home/rich/gamenode/gamenode-plugin-dolphin-emu/dist/dolphin-emu-0.3.1-linux-x64.gnbundle`;
   SHA-256 `f6686e37538bb2ca794d8d4ef42d599371f55d92e97488f0246eace7ebc5dac9`; same development
   publisher fingerprint as 0.3.0. Local test bundle, no tag or push.
+
+## 0.3.2 re-key and Windows target (2026-11-22)
+
+- The 0.3.1 development private key lived under `/tmp` and was lost with a reboot. 0.3.2 is signed
+  with a new development key stored at `~/.config/gamenode/plugin-keys/dolphin-emu-dev.pem` and in
+  Bitwarden; the publisher `public_key` changed, so a fresh trust review is required.
+- Both components now declare `linux/x86_64/gnu` and `windows/x86_64/msvc`. The Windows binaries
+  are cross-built MSVC with the static CRT (no Visual C++ Redistributable); native Windows
+  acceptance is not recorded.
+- Bundle: `/home/rich/gamenode/gamenode-plugin-dolphin-emu-launch/dist/dolphin-emu-0.3.2-x64.gnbundle`;
+  SHA-256 `bcd3e603ff7e259e961cbc1f84f96cddb1d0617a490a2396bdc3ff328f19aee4`. Local test bundle,
+  no tag or push.

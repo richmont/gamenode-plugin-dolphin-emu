@@ -77,13 +77,16 @@ CARGO_TARGET_DIR=/data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-launch C
 SDK/host reference: `cc667cbf162544b5446a2848c2a9decf91148dd3` (host-approved runtime picker).
 Run from this repository.
 The checked-in public key is **development-only**, not a release publisher identity. The private
-key is outside Git. To regenerate it, run the following keygen command once and replace
-`publisher.public_key` in both manifests with its printed public key, keeping the same key_id.
-Never overwrite a key whose fingerprint is already pinned without a new user review.
+key lives outside Git at `~/.config/gamenode/plugin-keys/dolphin-emu-dev.pem` (directory `0700`,
+file `0600`) and is also kept in Bitwarden. Do not use `/tmp`: it is cleared on reboot, and losing
+the key forces a new publisher identity and a fresh trust review in GameNode. Keep the
+`.development-key` sidecar with the key so packages keep their development marker. Never overwrite
+a key whose fingerprint is already pinned without a new user review.
 
 ```sh
-mkdir -p /tmp/dolphin-keys
-python3 ../game-node-desktop/scripts/plugin-package.py keygen --development --private-key /tmp/dolphin-keys/catalog-dev.pem
+mkdir -p ~/.config/gamenode/plugin-keys && chmod 700 ~/.config/gamenode/plugin-keys
+python3 ../game-node-desktop/scripts/plugin-package.py keygen --development --private-key ~/.config/gamenode/plugin-keys/dolphin-emu-dev.pem
+chmod 600 ~/.config/gamenode/plugin-keys/dolphin-emu-dev.pem
 ```
 
 Regenerate notices from the locked runtime dependency graph before packaging:
@@ -97,17 +100,23 @@ With the matching key already present, the exact packaging commands are:
 
 ```sh
 env CARGO_TARGET_DIR=/data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-launch CARGO_NET_OFFLINE=true CARGO_INCREMENTAL=0 cargo build --release --workspace
-mkdir -p provider/package/bin/linux-x64 launch/package/bin/linux-x64 dist
+env PATH="$HOME/.cargo/bin:$PATH" RUSTFLAGS="-C target-feature=+crt-static" CARGO_TARGET_DIR=/data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-launch CARGO_NET_OFFLINE=true CARGO_INCREMENTAL=0 cargo xwin build --release --target x86_64-pc-windows-msvc --workspace
+mkdir -p provider/package/bin/linux-x64 provider/package/bin/windows-x64 launch/package/bin/linux-x64 launch/package/bin/windows-x64 dist
 cp /data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-launch/release/gamenode-dolphin-emu-provider provider/package/bin/linux-x64/plugin
 cp /data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-launch/release/gamenode-dolphin-emu-launch launch/package/bin/linux-x64/plugin
-python3 ../game-node-desktop/scripts/plugin-package.py pack --source provider/package --private-key /tmp/dolphin-keys/catalog-dev.pem --output dist/dolphin-emu-provider.gnplugin
-python3 ../game-node-desktop/scripts/plugin-package.py pack --source launch/package --private-key /tmp/dolphin-keys/catalog-dev.pem --output dist/dolphin-emu-launch.gnplugin
+cp /data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-launch/x86_64-pc-windows-msvc/release/gamenode-dolphin-emu-provider.exe provider/package/bin/windows-x64/plugin.exe
+cp /data/DADOS_LINUX/geral/area_troca_rust/target-dolphin-launch/x86_64-pc-windows-msvc/release/gamenode-dolphin-emu-launch.exe launch/package/bin/windows-x64/plugin.exe
+python3 ../game-node-desktop/scripts/plugin-package.py pack --source provider/package --private-key ~/.config/gamenode/plugin-keys/dolphin-emu-dev.pem --output dist/dolphin-emu-provider.gnplugin
+python3 ../game-node-desktop/scripts/plugin-package.py pack --source launch/package --private-key ~/.config/gamenode/plugin-keys/dolphin-emu-dev.pem --output dist/dolphin-emu-launch.gnplugin
 python3 ../game-node-desktop/scripts/plugin-package.py verify dist/dolphin-emu-provider.gnplugin
 python3 ../game-node-desktop/scripts/plugin-package.py verify dist/dolphin-emu-launch.gnplugin
-python3 ../game-node-desktop/scripts/plugin-package.py bundle --component dist/dolphin-emu-provider.gnplugin --component dist/dolphin-emu-launch.gnplugin --id dev.richmont.gamenode.dolphin-emu.bundle --name 'Dolphin GameCube and Wii' --version 0.1.0 --private-key /tmp/dolphin-keys/catalog-dev.pem --output dist/dolphin-emu-0.1.0-linux-x64.gnbundle
-python3 ../game-node-desktop/scripts/plugin-package.py bundle-verify dist/dolphin-emu-0.1.0-linux-x64.gnbundle
+python3 ../game-node-desktop/scripts/plugin-package.py bundle --component dist/dolphin-emu-provider.gnplugin --component dist/dolphin-emu-launch.gnplugin --id dev.richmont.gamenode.dolphin-emu.bundle --name 'Dolphin GameCube and Wii' --version 0.3.2 --private-key ~/.config/gamenode/plugin-keys/dolphin-emu-dev.pem --output dist/dolphin-emu-0.3.2-x64.gnbundle
+python3 ../game-node-desktop/scripts/plugin-package.py bundle-verify dist/dolphin-emu-0.3.2-x64.gnbundle
 sha256sum dist/*.gnplugin dist/*.gnbundle
 ```
+
+The Windows binaries are built with the static CRT, so they need no Visual C++ Redistributable.
+Both components declare the `linux/x86_64/gnu` and `windows/x86_64/msvc` targets.
 
 Import the bundle in GameNode, review the development publisher fingerprint, then grant each
 component's permissions. Both manifests declare `supported_platforms` (`gamecube`, `wii`) and a
@@ -116,7 +125,8 @@ an optional grant is denied. The intended host flow provides one review, one inv
 uninstall for both components. Package verification does not establish native UI acceptance.
 The integration session must record those checks and a permitted consumer reading the durable
 catalog after the provider stops. Launch remains a placeholder; known launch-session blockers
-are outside this delivery. Windows cross-build and native acceptance remain separate work.
+are outside this delivery. The Windows binaries are cross-built and signed here, but native
+Windows acceptance is still separate work.
 
 See [delivery evidence](docs/durable-catalog-evidence.md) for hashes and validation results.
 

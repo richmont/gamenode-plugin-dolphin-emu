@@ -94,9 +94,17 @@ Artifacts (outside Git, in `dist/`):
 
 | Artifact | SHA-256 |
 | --- | --- |
-| `dist/dolphin-emu-provider.gnplugin` | `005923ca1c9468fec0cf3ea42cdac12249ba33e6c623e96670c8687c4a0a7fc6` |
-| `dist/dolphin-emu-launch.gnplugin` | `00e10cde7b53d8af4a0ae01cf379b6aca636206a316d4b5fede50ca0437f5283` |
-| `dist/dolphin-emu-0.1.0-linux-x64.gnbundle` | `543271dce6ae46b42e7f32a022e28fe1751e71f7398ec3ac8424f38ccbed7012` |
+| `dist/dolphin-emu-provider.gnplugin` | `8d166aba41face67ff6c844d7d3b78571718118985a43d8051205bea526abc87` |
+| `dist/dolphin-emu-launch.gnplugin` | `b9f956f4d728ecaf68c05764bad71bb693ede1a8263217d96734f90c5bfe536a` |
+| `dist/dolphin-emu-0.3.2-x64.gnbundle` | `bcd3e603ff7e259e961cbc1f84f96cddb1d0617a490a2396bdc3ff328f19aee4` |
+
+0.3.2 release (2026-11-22): the 0.3.1 development private key was lost with a reboot because it
+was stored under `/tmp`, so this version is signed with a new development key kept at
+`~/.config/gamenode/plugin-keys/dolphin-emu-dev.pem` (`0600`) and in Bitwarden. The publisher
+`public_key` changed, which requires a fresh trust review before import; the old 0.3.1 packages
+remain signed by the previous publisher. Both components now declare the
+`windows/x86_64/msvc` target next to Linux, and the Windows binaries are static-CRT builds, so
+they need no Visual C++ Redistributable. Native Windows acceptance is not recorded here.
 
 Review contract (2026-11-21): both manifests now declare `supported_platforms`
 `["gamecube", "wii"]` (content platforms, not OS targets) and a signed `impact_if_disabled` for
@@ -119,7 +127,7 @@ provider id is now `dolphin-emu`. The artifacts above were rebuilt and re-signed
 development public key; their hashes changed with the manifests. No released data, grants or
 installed packages used the old identity.
 
-Bundle: `dev.richmont.gamenode.dolphin-emu.bundle`, name `Dolphin GameCube and Wii`, version `0.1.0`.
+Bundle: `dev.richmont.gamenode.dolphin-emu.bundle`, name `Dolphin GameCube and Wii`, version `0.3.2`.
 `bundle.json` lists exactly two components, `dev.richmont.gamenode.dolphin-emu` (provider) and
 `dev.richmont.gamenode.dolphin-emu-launch` (extension), with the component hashes above.
 
@@ -130,9 +138,9 @@ plugin-package.py verify dist/dolphin-emu-provider.gnplugin        # valid packa
 plugin-package.py verify dist/dolphin-emu-launch.gnplugin          # valid package
 plugin-package.py bundle --component dist/dolphin-emu-provider.gnplugin \
   --component dist/dolphin-emu-launch.gnplugin --id dev.richmont.gamenode.dolphin-emu.bundle \
-  --name 'Dolphin GameCube and Wii' --version 0.1.0 --private-key <key> \
-  --output dist/dolphin-emu-0.1.0-linux-x64.gnbundle               # verified bundle
-plugin-package.py bundle-verify dist/dolphin-emu-0.1.0-linux-x64.gnbundle  # valid bundle
+  --name 'Dolphin GameCube and Wii' --version 0.3.2 --private-key <key> \
+  --output dist/dolphin-emu-0.3.2-x64.gnbundle                    # verified bundle
+plugin-package.py bundle-verify dist/dolphin-emu-0.3.2-x64.gnbundle          # valid bundle
 ```
 
 Exact reproducible commands are in `README.md`; the hashes change whenever a binary, manifest or
